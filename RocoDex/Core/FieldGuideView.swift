@@ -352,7 +352,7 @@ struct FieldGuideView: View {
                         Link("洛克王国世界 WIKI · 精灵图鉴", destination: URL(string:"https://wiki.biligame.com/nrc/")!.appendingPathComponent("精灵图鉴"))
                         Link("图鉴资料整理 · CC BY-SA 4.0", destination: URL(string:"https://creativecommons.org/licenses/by-sa/4.0/")!)
                         Text("本图鉴整合了 Wiki 档案与进化分支。游戏角色与美术归原权利人所有。")
-                        Link("介绍配音 · Kokoro 普通话女声", destination: URL(string:"https://huggingface.co/hexgrad/Kokoro-82M-v1.1-zh")!)
+                        Link("介绍配音 · Qwen3-TTS 温暖观察", destination: URL(string:"https://github.com/QwenLM/Qwen3-TTS")!)
                     }.font(.footnote)
                 }
             }

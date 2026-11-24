@@ -6016,11 +6016,11 @@
     }
   ],
   "narration": {
-    "voice": "Kokoro-82M-v1.1-zh / zf_001",
-    "language": "普通话",
-    "model": "https://huggingface.co/hexgrad/Kokoro-82M-v1.1-zh",
-    "engine": "https://github.com/k2-fsa/sherpa-onnx",
-    "production": "音轨在制作时离线合成，每个形态独立保存。"
+    "model": "Qwen3-TTS 1.7B CustomVoice",
+    "speaker": "Serena",
+    "reference": "https://github.com/QwenLM/Qwen3-TTS",
+    "count": 665,
+    "notes": "普通话完整段落配音，依档案习性分别指定语气、重音和停顿，离线播放。口播和表演提示见工程根目录的配音台本.csv。"
   },
   "fieldGuide": {
     "skills": "https://wiki.biligame.com/nrc/技能列表",
