@@ -1,0 +1,521 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		1CCBE5E0EEB3F7A5749E2A43 /* Spirits.json in Resources */ = {isa = PBXBuildFile; fileRef = 6CD0C1169A999C9B0428745E /* Spirits.json */; };
+		298D1470A30C4AC7BB7B4AFF /* Narration in Resources */ = {isa = PBXBuildFile; fileRef = 1416173EB4474E318813EAF1 /* Narration */; };
+		3977533788180D67EE8C4DA2 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = BD12731D7BC9B843D8523E65 /* Assets.xcassets */; };
+		572D04ED1A4BD1262C262F3A /* Sources.json in Resources */ = {isa = PBXBuildFile; fileRef = D0C9AFC1AF7AA38DA1170839 /* Sources.json */; };
+		5CE19F040A41E712D6952A93 /* ScanIndex.json in Resources */ = {isa = PBXBuildFile; fileRef = 5787ECE6E848D33AB4405EA6 /* ScanIndex.json */; };
+		8F0D23AA72BB41AE9397EC42 /* Animations in Resources */ = {isa = PBXBuildFile; fileRef = A2D91291173B4907AB28E98C /* Animations */; };
+		B0070ACA410F0C060D2F5FA0 /* HeadArt in Resources */ = {isa = PBXBuildFile; fileRef = 03EA41210AD91BCDD1A97CFF /* HeadArt */; };
+		F6A37395BC5C175939307F1F /* Art in Resources */ = {isa = PBXBuildFile; fileRef = 4B8057E2831420F2D019DBA1 /* Art */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		1241936D4DD3AAD68FE7BFBD /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 244210E48437B6556980A702 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 94EE520516C2B362CF51F8DB;
+			remoteInfo = RocoDex;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		03EA41210AD91BCDD1A97CFF /* HeadArt */ = {isa = PBXFileReference; lastKnownFileType = folder; path = HeadArt; sourceTree = "<group>"; };
+		1416173EB4474E318813EAF1 /* Narration */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Narration; sourceTree = "<group>"; };
+		4B8057E2831420F2D019DBA1 /* Art */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Art; sourceTree = "<group>"; };
+		4ED35644D2543696A1034554 /* RocoDexUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; path = RocoDexUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		5787ECE6E848D33AB4405EA6 /* ScanIndex.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = ScanIndex.json; sourceTree = "<group>"; };
+		6CD0C1169A999C9B0428745E /* Spirits.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = Spirits.json; sourceTree = "<group>"; };
+		970FB190220EDCE2E3BBCD1A /* RocoDexTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; path = RocoDexTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		A2D91291173B4907AB28E98C /* Animations */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Animations; sourceTree = "<group>"; };
+		BD12731D7BC9B843D8523E65 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		D0C9AFC1AF7AA38DA1170839 /* Sources.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = Sources.json; sourceTree = "<group>"; };
+		DEF93E8F8AC229A0D98BBEFA /* RocoDex.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; path = RocoDex.app; sourceTree = BUILT_PRODUCTS_DIR; };
+/* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		69C404591E99D86FD11F5AE1 /* Views */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = Views;
+			sourceTree = "<group>";
+		};
+		70EA1983C983DEACC1B61805 /* Core */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = Core;
+			sourceTree = "<group>";
+		};
+		71D4CF953E59506F9827C81D /* Scanner */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = Scanner;
+			sourceTree = "<group>";
+		};
+		781CAA6738A604344AE86EE3 /* RocoDexTests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = RocoDexTests;
+			sourceTree = "<group>";
+		};
+		E851AFF3561E17503079FF35 /* RocoDexUITests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = RocoDexUITests;
+			sourceTree = "<group>";
+		};
+/* End PBXFileSystemSynchronizedRootGroup section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		2E5619795A2CA76BC79B9D6C /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		CAFD6B725820BD8EFB592E21 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		D9191C651B9EA094F38335A4 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		4813494D137E1631BBA301D5 = {
+			isa = PBXGroup;
+			children = (
+				A5660BF89DD2D657048780AB /* RocoDex */,
+				781CAA6738A604344AE86EE3 /* RocoDexTests */,
+				E851AFF3561E17503079FF35 /* RocoDexUITests */,
+				4EDC8BFAFC6BD936B849F38C /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		4EDC8BFAFC6BD936B849F38C /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				DEF93E8F8AC229A0D98BBEFA /* RocoDex.app */,
+				970FB190220EDCE2E3BBCD1A /* RocoDexTests.xctest */,
+				4ED35644D2543696A1034554 /* RocoDexUITests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		A5660BF89DD2D657048780AB /* RocoDex */ = {
+			isa = PBXGroup;
+			children = (
+				70EA1983C983DEACC1B61805 /* Core */,
+				69C404591E99D86FD11F5AE1 /* Views */,
+				71D4CF953E59506F9827C81D /* Scanner */,
+				E89B30AA1DC30A6AD8C34610 /* Resources */,
+				BD12731D7BC9B843D8523E65 /* Assets.xcassets */,
+			);
+			path = RocoDex;
+			sourceTree = "<group>";
+		};
+		E89B30AA1DC30A6AD8C34610 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				4B8057E2831420F2D019DBA1 /* Art */,
+				03EA41210AD91BCDD1A97CFF /* HeadArt */,
+				A2D91291173B4907AB28E98C /* Animations */,
+				1416173EB4474E318813EAF1 /* Narration */,
+				6CD0C1169A999C9B0428745E /* Spirits.json */,
+				5787ECE6E848D33AB4405EA6 /* ScanIndex.json */,
+				D0C9AFC1AF7AA38DA1170839 /* Sources.json */,
+			);
+			path = Resources;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		7378103938D3DE6964E2E6A7 /* RocoDexTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 1F12EF89E9CE968D37070507 /* Build configuration list for PBXNativeTarget "RocoDexTests" */;
+			buildPhases = (
+				8B106BBDC2834359F62868BB /* Sources */,
+				D9191C651B9EA094F38335A4 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				8CE3E71EF8635D2BF27913BB /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				781CAA6738A604344AE86EE3 /* RocoDexTests */,
+			);
+			name = RocoDexTests;
+			productName = RocoDexTests;
+			productReference = 970FB190220EDCE2E3BBCD1A /* RocoDexTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		85FEBAC7B617E161706DCEBF /* RocoDexUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 684AD222A9C8879DE1F3D88B /* Build configuration list for PBXNativeTarget "RocoDexUITests" */;
+			buildPhases = (
+				41BCFCDD74BC9C4DB6CFD83A /* Sources */,
+				2E5619795A2CA76BC79B9D6C /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				8CE3E71EF8635D2BF27913BB /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				E851AFF3561E17503079FF35 /* RocoDexUITests */,
+			);
+			name = RocoDexUITests;
+			productName = RocoDexUITests;
+			productReference = 4ED35644D2543696A1034554 /* RocoDexUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
+		94EE520516C2B362CF51F8DB /* RocoDex */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 72EC310DDEAC57D8B9188D10 /* Build configuration list for PBXNativeTarget "RocoDex" */;
+			buildPhases = (
+				CAF85B0888D78F1F83771A07 /* Sources */,
+				CAFD6B725820BD8EFB592E21 /* Frameworks */,
+				F77E8395C14206FA0A5A32E1 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				69C404591E99D86FD11F5AE1 /* Views */,
+				70EA1983C983DEACC1B61805 /* Core */,
+				71D4CF953E59506F9827C81D /* Scanner */,
+			);
+			name = RocoDex;
+			productName = RocoDex;
+			productReference = DEF93E8F8AC229A0D98BBEFA /* RocoDex.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		244210E48437B6556980A702 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 2720;
+				TargetAttributes = {
+					7378103938D3DE6964E2E6A7 = {
+						CreatedOnToolsVersion = 27.2;
+						TestTargetID = 94EE520516C2B362CF51F8DB;
+					};
+					94EE520516C2B362CF51F8DB = {
+						CreatedOnToolsVersion = 27.2;
+					};
+				};
+			};
+			buildConfigurationList = A9D611CBB74DE5A90A5674D4 /* Build configuration list for PBXProject "RocoDex" */;
+			developmentRegion = "zh-Hans";
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				"zh-Hans",
+				en,
+				Base,
+			);
+			mainGroup = 4813494D137E1631BBA301D5;
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 4EDC8BFAFC6BD936B849F38C /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				94EE520516C2B362CF51F8DB /* RocoDex */,
+				7378103938D3DE6964E2E6A7 /* RocoDexTests */,
+				85FEBAC7B617E161706DCEBF /* RocoDexUITests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		F77E8395C14206FA0A5A32E1 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				F6A37395BC5C175939307F1F /* Art in Resources */,
+				B0070ACA410F0C060D2F5FA0 /* HeadArt in Resources */,
+				8F0D23AA72BB41AE9397EC42 /* Animations in Resources */,
+				298D1470A30C4AC7BB7B4AFF /* Narration in Resources */,
+				1CCBE5E0EEB3F7A5749E2A43 /* Spirits.json in Resources */,
+				5CE19F040A41E712D6952A93 /* ScanIndex.json in Resources */,
+				572D04ED1A4BD1262C262F3A /* Sources.json in Resources */,
+				3977533788180D67EE8C4DA2 /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		41BCFCDD74BC9C4DB6CFD83A /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		8B106BBDC2834359F62868BB /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		CAF85B0888D78F1F83771A07 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		8CE3E71EF8635D2BF27913BB /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 94EE520516C2B362CF51F8DB /* RocoDex */;
+			targetProxy = 1241936D4DD3AAD68FE7BFBD /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		403402A832293B9F3CEFEA5C /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = com.feiyang.rocofieldguide.uitests;
+				TEST_TARGET_NAME = RocoDex;
+			};
+			name = Release;
+		};
+		433548979C024CC63B5F3B8D /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_STYLE = Automatic;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 27.0;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Debug;
+		};
+		685C2B110B9304BF671D803C /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = com.feiyang.rocofieldguide.tests;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/RocoDex.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/RocoDex";
+			};
+			name = Debug;
+		};
+		75CB0F143629C8B379DB2597 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CURRENT_PROJECT_VERSION = 5;
+				DEVELOPMENT_TEAM = 2DXQJA562U;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = "洛克精灵图鉴";
+				INFOPLIST_KEY_NSCameraUsageDescription = "在取景框内拍摄精灵，在本机匹配图鉴。";
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 27.0;
+				MARKETING_VERSION = 1.4;
+				PRODUCT_BUNDLE_IDENTIFIER = com.feiyang.rocofieldguide;
+				PRODUCT_NAME = RocoDex;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+			};
+			name = Release;
+		};
+		B800A40FDE6F0A0218D9BCD2 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ANALYZER_LOCALIZABILITY_NONLOCALIZED = YES;
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				CODE_SIGN_STYLE = Automatic;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = NO;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 27.0;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				STRING_CATALOG_GENERATE_SYMBOLS = YES;
+				SUPPORTED_PLATFORMS = "iphoneos iphonesimulator";
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Release;
+		};
+		C51CDB226EDE71FD02F4836C /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CURRENT_PROJECT_VERSION = 5;
+				DEVELOPMENT_TEAM = 2DXQJA562U;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = "洛克精灵图鉴";
+				INFOPLIST_KEY_NSCameraUsageDescription = "在取景框内拍摄精灵，在本机匹配图鉴。";
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				IPHONEOS_DEPLOYMENT_TARGET = 27.0;
+				MARKETING_VERSION = 1.4;
+				PRODUCT_BUNDLE_IDENTIFIER = com.feiyang.rocofieldguide;
+				PRODUCT_NAME = RocoDex;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+			};
+			name = Debug;
+		};
+		E6EB5E9A8F9AF033376DD753 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = com.feiyang.rocofieldguide.uitests;
+				TEST_TARGET_NAME = RocoDex;
+			};
+			name = Debug;
+		};
+		FD7FEF8B96857D998A7ACF7F /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				PRODUCT_BUNDLE_IDENTIFIER = com.feiyang.rocofieldguide.tests;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/RocoDex.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/RocoDex";
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		1F12EF89E9CE968D37070507 /* Build configuration list for PBXNativeTarget "RocoDexTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				685C2B110B9304BF671D803C /* Debug */,
+				FD7FEF8B96857D998A7ACF7F /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		684AD222A9C8879DE1F3D88B /* Build configuration list for PBXNativeTarget "RocoDexUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				E6EB5E9A8F9AF033376DD753 /* Debug */,
+				403402A832293B9F3CEFEA5C /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		72EC310DDEAC57D8B9188D10 /* Build configuration list for PBXNativeTarget "RocoDex" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				C51CDB226EDE71FD02F4836C /* Debug */,
+				75CB0F143629C8B379DB2597 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		A9D611CBB74DE5A90A5674D4 /* Build configuration list for PBXProject "RocoDex" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				433548979C024CC63B5F3B8D /* Debug */,
+				B800A40FDE6F0A0218D9BCD2 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 244210E48437B6556980A702 /* Project object */;
+}
