@@ -13,6 +13,7 @@ struct Spirit: Codable, Identifiable {
     let sourceURL: String?
     let form: String?
 
+    var elements: [String] { type.components(separatedBy: "／") }
     var number: String { String(format: "%03d", dexNumber ?? id) }
     var distinctForm: String? {
         guard let form, !form.isEmpty, !name.contains(form) else { return nil }
@@ -53,6 +54,7 @@ final class CatalogPictures {
 }
 
 struct Catalog {
+    let countsByElement: [String: Int]
     let entries: [Spirit]
     let pictures: CatalogPictures
     private let formsByNumber: [Int: [Spirit]]
@@ -93,6 +95,7 @@ struct Catalog {
                 motion[spirit.id] = directory.appendingPathComponent("Animations/" + key + ".apng")
             }
         }
+        self.countsByElement = entries.flatMap(\.elements).reduce(into: [:]) { $0[$1, default: 0] += 1 }
         self.entries = entries
         formsByNumber = Dictionary(grouping: entries) { $0.dexNumber ?? $0.id }
         pictures = CatalogPictures(urls: urls)
@@ -102,8 +105,10 @@ struct Catalog {
 }
 
 enum ArchivePage: Int, CaseIterable {
-    case profile, skills, family
-    var title: String { ["档案", "技能", "进化"][rawValue] }
+    case profile, family, habitat
+    var title: String { ["档案", "进化", "生态与获取"][rawValue] }
+    var rightTitle: String { ["资料", "技能", "分布"][rawValue] }
+    var symbol: String { ["info.circle.fill", "wand.and.stars", "map.fill"][rawValue] }
     func shifted(_ delta: Int) -> Self {
         let views = Self.allCases
         return views[(rawValue + delta + views.count) % views.count]

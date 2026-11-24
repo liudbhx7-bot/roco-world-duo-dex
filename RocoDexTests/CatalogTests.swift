@@ -31,7 +31,7 @@ final class CatalogTests: XCTestCase {
         XCTAssertEqual(water.trait,"浸润")
         XCTAssertEqual(water.stats.reduce(0,+),372)
         XCTAssertEqual(water.evolution, [8, 9, 10, 10543])
-        XCTAssertEqual(ArchivePage.profile.shifted(-1),.family)
+        XCTAssertEqual(ArchivePage.profile.shifted(-1),.habitat)
     }
 
     func testBundledArtPassesThroughRecognition() async throws {

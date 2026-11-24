@@ -5,6 +5,12 @@ private enum ScanStage {
     case archive, aim, working, choices, miss
 }
 
+private enum GuideIndex: Hashable, Identifiable {
+    case all
+    case forms(Int)
+    var id: Self { self }
+}
+
 struct FieldGuideView: View {
     let catalog: Catalog
     @State private var recognizer: SpiritRecognizer
@@ -14,8 +20,9 @@ struct FieldGuideView: View {
     @State private var controls = false
     @State private var digits = ""
     @State private var notice = ""
-    @State private var showIndex = false
+    @State private var indexScope: GuideIndex?
     @State private var indexQuery = ""
+    @State private var indexType: String?
     @State private var showDetails = false
     @State private var pickingPhoto = false
     @State private var photo: PhotosPickerItem?
@@ -38,7 +45,7 @@ struct FieldGuideView: View {
     private var found: Set<Int> { Set(foundIDs.split(separator:",").compactMap { Int($0) }) }
 
     var body: some View {
-        HandheldShell(compactControls:$controls, scanning:stage == .aim || stage == .working, leftScreen: {
+        HandheldShell(page: $page, keypadOpen: $controls, scanActive: stage != .archive, scanning:stage == .aim || stage == .working, leftScreen: {
             leftLCD.overlay(alignment:.topLeading) {
                 if stage == .aim || stage == .miss || stage == .working {
                     Button { stopScan(); notice = "" } label: {
@@ -49,7 +56,13 @@ struct FieldGuideView: View {
                 }
             }
         }, rightScreen: {
-            StatusLCD(spirit:spirit,headline:headline,message:displayMessage)
+            switch page {
+            case .profile: DossierStatsPanel(spirit: spirit)
+            case .family: SkillGuideView(spirit: spirit)
+            case .habitat: HabitatMapPanel(spirit: spirit)
+            }
+        }, keypadScreen: {
+            StatusLCD(headline: headline, message: displayMessage)
         }, onKey: press)
         .statusBarHidden()
         .persistentSystemOverlays(.hidden)
@@ -63,7 +76,7 @@ struct FieldGuideView: View {
         }
         .onChange(of:phase) { _, phase in
             if phase == .active {
-                if stage == .aim && !pickingPhoto && !showIndex { camera.start() }
+                if stage == .aim && !pickingPhoto && indexScope == nil { camera.start() }
             } else {
                 camera.stop()
                 narrator.stop()
@@ -76,7 +89,7 @@ struct FieldGuideView: View {
                 }
             }
         }
-        .sheet(isPresented:$showIndex, onDismiss: { indexQuery = "" }) { indexSheet }
+        .sheet(item: $indexScope, onDismiss: { indexQuery = ""; indexType = nil }) { scope in indexSheet(scope) }
         .sheet(isPresented:$showDetails, onDismiss: narrator.stop) {
             detailSheet.modifier(NarrationAlert(message: $narrator.unavailableMessage, active: true))
         }
@@ -90,8 +103,7 @@ struct FieldGuideView: View {
             PortraitLCD(spirit: spirit, catalog: catalog, page: page, found: found.contains(spirit.id),
                         select: { choose($0, resetPage: false) }, openDetails: { showDetails = true },
                         openForms: {
-                            indexQuery = spirit.number
-                            showIndex = true
+                            indexScope = .forms(spirit.dexNumber ?? spirit.id)
                         },
                         animationURL: catalog.animationURLs[spirit.id], isNarrating: narrator.isSpeaking,
                         toggleNarration: toggleNarration)
@@ -265,7 +277,7 @@ struct FieldGuideView: View {
             stopScan(); digits = ""; notice = ""; controls = false
         case .search:
             guard !digits.isEmpty else {
-                stopScan(); notice = ""; showIndex = true; return
+                stopScan(); notice = ""; indexScope = .all; return
             }
             if let number = Int(digits), let entry = catalog.forms(number:number).first {
                 choose(entry.id)
@@ -290,66 +302,95 @@ struct FieldGuideView: View {
             let count = catalog.entries.count
             choose(catalog.entries[(index + delta + count) % count].id)
         case .info:
-            stopScan(); showIndex = true
+            stopScan(); indexScope = .all
         }
     }
 
     private var filteredEntries: [Spirit] {
         let query = indexQuery.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !query.isEmpty else { return catalog.entries }
+        let entries = catalog.entries.filter { spirit in
+            guard let indexType else { return true }
+            return spirit.elements.contains(indexType)
+        }
+        guard !query.isEmpty else { return entries }
         if let number = Int(query) {
-            if query.count == 3 { return catalog.forms(number: number) }
-            return catalog.entries.filter { $0.number.hasPrefix(query) || Int($0.number) == number }
+            if query.count == 3 { return entries.filter { ($0.dexNumber ?? $0.id) == number } }
+            return entries.filter { $0.number.hasPrefix(query) || Int($0.number) == number }
         }
         let typeQuery = query.hasSuffix("系") && query.count > 1 ? String(query.dropLast()) : query
-        return catalog.entries.filter {
+        return entries.filter {
             $0.formattedName.localizedStandardContains(query) || $0.type.localizedStandardContains(typeQuery)
         }
     }
 
-    private var indexSheet: some View {
+    private func indexSheet(_ scope: GuideIndex) -> some View {
         NavigationStack {
-            let filtered = filteredEntries
-            let discovered = found
-            List {
-                if indexQuery.isEmpty {
-                    Section {
-                        Toggle("识别成功时朗读",isOn:$voice)
-                        DisclosureGroup("资料与配音") {
-                            Link("洛克王国世界 WIKI · 精灵图鉴", destination: URL(string:"https://wiki.biligame.com/nrc/")!.appendingPathComponent("精灵图鉴"))
-                            Link("图鉴资料整理 · CC BY-SA 4.0", destination: URL(string:"https://creativecommons.org/licenses/by-sa/4.0/")!)
-                            Text("本图鉴整合了 Wiki 档案与进化分支。游戏角色与美术归原权利人所有。")
-                            Link("介绍配音 · Kokoro 普通话女声", destination: URL(string:"https://huggingface.co/hexgrad/Kokoro-82M-v1.1-zh")!)
-                        }.font(.footnote)
+            if case let .forms(number) = scope {
+                List {
+                    Section("NO. " + String(format: "%03d", number)) {
+                        ForEach(catalog.forms(number: number)) { entry in
+                            indexRow(entry)
+                        }
                     }
                 }
-                Section(indexQuery.isEmpty ? "已发现 \(discovered.count) / \(catalog.entries.count)" : "\(filtered.count) 个结果") {
-                    ForEach(filtered) { entry in
-                        Button {
-                            showIndex = false; choose(entry.id)
-                        } label: {
-                            HStack {
-                                if let image = catalog.pictures.thumbnail(entry.id) { Image(uiImage:image).resizable().scaledToFit().frame(width:42,height:42) }
-                                Text(entry.number).font(.caption.monospacedDigit()).foregroundStyle(.secondary)
-                                VStack(alignment:.leading, spacing:2) {
-                                    Text(entry.name)
-                                    if let form = entry.distinctForm {
-                                        Text(form).font(.caption).foregroundStyle(.secondary)
-                                    }
-                                }
-                                Spacer()
-                                if discovered.contains(entry.id) { Image(systemName:"checkmark.circle.fill").foregroundStyle(.green) }
-                                Text(entry.type + "系").font(.caption).foregroundStyle(.secondary)
-                            }.contentShape(Rectangle())
-                        }.buttonStyle(.plain).accessibilityIdentifier("entry-\(entry.id)")
-                    }
-                    if filtered.isEmpty { Text("试试精灵名、形态名、系别或图鉴编号。").foregroundStyle(.secondary) }
-                }
-            }.navigationTitle("精灵名册")
-                .searchable(text:$indexQuery, placement:.navigationBarDrawer(displayMode:.always), prompt:"名称、形态、系别或编号")
-                .toolbar { ToolbarItem(placement:.confirmationAction) { Button("完成") { showIndex = false } } }
+                .navigationTitle("选择形态")
+                .toolbar { ToolbarItem(placement: .confirmationAction) { Button("完成") { indexScope = nil } } }
+            } else {
+                catalogList
+            }
         }
     }
+
+    private var catalogList: some View {
+        let filtered = filteredEntries
+        let discovered = found
+        return List {
+            if indexQuery.isEmpty {
+                Section {
+                    Toggle("识别成功时朗读",isOn:$voice)
+                    DisclosureGroup("资料与配音") {
+                        Link("洛克王国世界 WIKI · 精灵图鉴", destination: URL(string:"https://wiki.biligame.com/nrc/")!.appendingPathComponent("精灵图鉴"))
+                        Link("图鉴资料整理 · CC BY-SA 4.0", destination: URL(string:"https://creativecommons.org/licenses/by-sa/4.0/")!)
+                        Text("本图鉴整合了 Wiki 档案与进化分支。游戏角色与美术归原权利人所有。")
+                        Link("介绍配音 · Kokoro 普通话女声", destination: URL(string:"https://huggingface.co/hexgrad/Kokoro-82M-v1.1-zh")!)
+                    }.font(.footnote)
+                }
+            }
+            if indexQuery.isEmpty {
+                Section("精灵系别") {
+                    ElementFilter(catalog: catalog, selection: $indexType)
+                }
+            }
+            Section(indexQuery.isEmpty && indexType == nil ? "已发现 \(discovered.count) / \(catalog.entries.count)" : "\(filtered.count) 个结果") {
+                ForEach(filtered) { entry in indexRow(entry, discovered: discovered) }
+                if filtered.isEmpty { Text("试试精灵名、形态名、系别或图鉴编号。").foregroundStyle(.secondary) }
+            }
+        }.navigationTitle("精灵名册")
+            .searchable(text:$indexQuery, placement:.navigationBarDrawer(displayMode:.always), prompt:"名称、形态、系别或编号")
+            .toolbar { ToolbarItem(placement:.confirmationAction) { Button("完成") { indexScope = nil } } }
+    }
+
+    private func indexRow(_ entry: Spirit, discovered: Set<Int>? = nil) -> some View {
+        let discovered = discovered ?? found
+        return Button {
+            indexScope = nil; choose(entry.id)
+        } label: {
+            HStack {
+                if let image = catalog.pictures.thumbnail(entry.id) { Image(uiImage:image).resizable().scaledToFit().frame(width:42,height:42) }
+                Text(entry.number).font(.caption.monospacedDigit()).foregroundStyle(.secondary)
+                VStack(alignment:.leading, spacing:2) {
+                    Text(entry.name)
+                    if let form = entry.distinctForm {
+                        Text(form).font(.caption).foregroundStyle(.secondary)
+                    }
+                }
+                Spacer()
+                if discovered.contains(entry.id) { Image(systemName:"checkmark.circle.fill").foregroundStyle(.green) }
+                GameTypeIcons(types: entry.type, size: 20)
+            }.contentShape(Rectangle())
+        }.buttonStyle(.plain).accessibilityIdentifier("entry-\(entry.id)")
+    }
+
     private var detailSheet: some View {
         NavigationStack {
             List {
@@ -364,10 +405,6 @@ struct FieldGuideView: View {
                     if let source = spirit.sourceURL, let url = URL(string:source) {
                         Link("查看原始图鉴", destination:url)
                     }
-                }
-                Section("技能") {
-                    if spirit.skills.isEmpty { Text("尚无技能记录") }
-                    ForEach(Array(spirit.skills.enumerated()),id:\.offset) { _, name in Text(name) }
                 }
             }.navigationTitle(spirit.number + " " + spirit.formattedName)
                 .toolbar { ToolbarItem(placement:.confirmationAction) { Button("完成") { showDetails = false } } }

@@ -84,9 +84,7 @@ struct PortraitLCD: View {
                                 Text(form).font(.system(size:short ? 9 : 11, weight:.medium)).foregroundStyle(spirit.ink)
                                     .lineLimit(1).minimumScaleFactor(0.7)
                             }
-                            Text(spirit.type + "系").font(.system(size: short ? 10 : 12,weight:.bold))
-                                .padding(.horizontal,6).padding(.vertical,2)
-                                .foregroundStyle(.white).background(spirit.ink, in: Capsule())
+                            GameTypeIcons(types: spirit.type, size: short ? 16 : 21)
                             Button(action: openDetails) {
                                 HStack(spacing: 2) { Text(spirit.trait); Image(systemName: "chevron.right") }
                             }
@@ -109,16 +107,6 @@ struct PortraitLCD: View {
                     if g.size.height > 175 {
                         Text(spirit.summary).lineLimit(g.size.height > 230 ? 3 : 2)
                             .font(.system(size:12)).fixedSize(horizontal:false,vertical:true)
-                    }
-                case .skills:
-                    ScrollView {
-                        VStack(alignment:.leading,spacing:4) {
-                            if spirit.skills.isEmpty { Text("尚无技能记录") }
-                            ForEach(Array(spirit.skills.enumerated()),id:\.offset) { i, skill in
-                                HStack { Text(String(format:"%02d",i+1)).foregroundStyle(spirit.ink); Text(skill); Spacer() }
-                                    .padding(.bottom,2).overlay(alignment:.bottom) { Divider() }
-                            }
-                        }.font(.system(size: short ? 11 : 13,weight:.medium))
                     }
                 case .family:
                     let routes = spirit.evolutionPaths ?? []
@@ -156,6 +144,8 @@ struct PortraitLCD: View {
                             ForEach(members,id:\.self) { id in familyMember(id) }
                         }
                     }
+                case .habitat:
+                    HabitatInfoPanel(spirit: spirit)
                 }
                 Spacer(minLength:0)
                 HStack {
@@ -183,8 +173,8 @@ struct PortraitLCD: View {
         if let one = catalog.entries.first(where: { $0.id == id }) {
             Button { select(id) } label: {
                 VStack(spacing:2) {
-                    if let image = catalog.pictures.thumbnail(id) {
-                        Image(uiImage:image).resizable().scaledToFit().frame(maxHeight:.infinity)
+                    if let image = catalog.pictures[id] {
+                        Image(uiImage:image).resizable().interpolation(.high).scaledToFit().frame(maxWidth:.infinity,maxHeight:.infinity)
                     }
                     Text(one.formattedName).font(.caption.bold()).lineLimit(2).minimumScaleFactor(0.7)
                 }.frame(maxWidth:.infinity)
@@ -208,6 +198,8 @@ struct PortraitLCD: View {
                     .accessibilityIdentifier("staticPortrait")
             }
         }
+        .padding(.vertical, 3)
+        .modifier(PortraitFloat(enabled: !reduceMotion && scenePhase == .active))
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .clipped()
         .overlay(alignment: .bottomTrailing) {
@@ -230,50 +222,32 @@ struct PortraitLCD: View {
     }
 }
 
+private struct PortraitFloat: ViewModifier {
+    let enabled: Bool
+
+    @ViewBuilder func body(content: Content) -> some View {
+        if enabled {
+            content.phaseAnimator([false, true]) { media, rising in
+                media.offset(y: rising ? -2.5 : 2.5)
+            } animation: { _ in .easeInOut(duration: 1.65) }
+        } else {
+            content
+        }
+    }
+}
+
 struct StatusLCD: View {
-    let spirit: Spirit
     let headline: String?
     let message: String
-    private let colors: [Color] = [.green,.orange,.yellow,.cyan,.mint,.purple]
     var body: some View {
-        GeometryReader { g in
-            let compact = g.size.height < 89
-            VStack(alignment:.leading,spacing:compact ? 2 : 5) {
-                if let headline {
-                    Text(headline).font(.system(size:compact ? 14 : 18,weight:.bold,design:.monospaced))
-                    Text(message).font(.system(size:compact ? 10 : 12)).lineLimit(3).minimumScaleFactor(0.72)
-                } else {
-                    HStack {
-                        Text(spirit.name).font(.system(size:compact ? 12 : 15,weight:.bold))
-                        Spacer()
-                        Text("总值 " + String(spirit.stats.reduce(0,+))).font(.system(size:compact ? 10 : 12,weight:.bold,design:.monospaced))
-                    }
-                    ForEach(0..<3,id:\.self) { row in
-                        HStack(spacing:9) {
-                            ForEach([row,row+3],id:\.self) { i in
-                                HStack(spacing:3) {
-                                    Text(Spirit.statNames[i]).lineLimit(1).fixedSize()
-                                    GeometryReader { b in
-                                        ZStack(alignment:.leading) {
-                                            Capsule().fill(.white.opacity(0.13))
-                                            Capsule().fill(colors[i]).frame(width:b.size.width * min(1,CGFloat(spirit.stats[i])/165))
-                                        }
-                                    }.frame(height:3)
-                                    Text(String(spirit.stats[i]))
-                                        .monospacedDigit()
-                                        .lineLimit(1)
-                                        .fixedSize()
-                                        .frame(minWidth: compact ? 21 : 25, alignment: .trailing)
-                                }.frame(maxWidth:.infinity)
-                            }
-                        }.font(.system(size:compact ? 9 : 11,weight:.semibold,design:.rounded))
-                    }
-                }
-            }
-            .padding(.horizontal,8).padding(.vertical,compact ? 3 : 6)
-            .frame(maxWidth:.infinity,maxHeight:.infinity,alignment:.leading)
-            .foregroundStyle(Color(red:0.85,green:0.95,blue:0.83))
-            .background(Color(red:0.055,green:0.105,blue:0.09))
+        VStack(alignment: .leading, spacing: 6) {
+            Label(headline ?? "图鉴编号", systemImage: "number")
+                .font(.headline.monospacedDigit())
+            Text(message.isEmpty ? "输入编号后按查找，或直接按查找浏览名册。" : message)
+                .font(.callout)
         }
+        .padding(12).frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .leading)
+        .foregroundStyle(Color(red: 0.85, green: 0.95, blue: 0.83))
+        .background(Color(red: 0.055, green: 0.105, blue: 0.09))
     }
 }

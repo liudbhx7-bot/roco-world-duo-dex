@@ -1,6 +1,6 @@
 {
   "title": "洛克王国：世界 · 图鉴资料与图像来源",
-  "edition": "1.4 · 2026-11-24 · S5 圣龙宝藏",
+  "edition": "1.5 · 2026-11-24 · S5 精灵图鉴 / S4 月涌狂想地图",
   "rosterURL": "https://wiki.biligame.com/nrc/%E7%B2%BE%E7%81%B5%E5%9B%BE%E9%89%B4",
   "totalEntries": 665,
   "handbookNumbers": 496,
@@ -6021,5 +6021,13 @@
     "model": "https://huggingface.co/hexgrad/Kokoro-82M-v1.1-zh",
     "engine": "https://github.com/k2-fsa/sherpa-onnx",
     "production": "音轨在制作时离线合成，每个形态独立保存。"
+  },
+  "fieldGuide": {
+    "skills": "https://wiki.biligame.com/nrc/技能列表",
+    "map": "https://wiki.biligame.com/nrc/地图",
+    "skillData": "BattleGuide/catalog.json",
+    "habitatData": "FieldMaps/Habitats.json",
+    "mapSeason": "S4 · 月涌狂想",
+    "mapNote": "精灵栖息地标记代表区域；首领、传说挑战点和地名多边形按形态分别匹配。"
   }
 }

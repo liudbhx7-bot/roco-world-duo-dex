@@ -85,16 +85,143 @@ final class FieldGuideUITests: XCTestCase {
         lookup("002")
         XCTAssertTrue(app.staticTexts["喵喵"].firstMatch.exists)
         app.buttons["向右"].tap()
-        XCTAssertTrue(app.staticTexts["技能"].waitForExistence(timeout: 3))
-        app.buttons["向右"].tap()
-        XCTAssertTrue(app.staticTexts["进化"].waitForExistence(timeout: 3))
+        XCTAssertTrue(app.staticTexts["进化"].firstMatch.waitForExistence(timeout: 3))
         let middle = app.buttons.matching(NSPredicate(format: "label CONTAINS %@", "喵呜")).firstMatch
         XCTAssertTrue(middle.waitForExistence(timeout: 3))
         middle.tap()
         XCTAssertTrue(app.staticTexts["NO. 003"].firstMatch.waitForExistence(timeout: 3))
         app.buttons["向右"].tap()
+        XCTAssertTrue(app.staticTexts["生态与获取"].waitForExistence(timeout: 3))
+        app.buttons["向右"].tap()
         XCTAssertTrue(app.staticTexts["档案"].exists)
         XCTAssertTrue(app.staticTexts["喵呜"].firstMatch.exists)
+    }
+
+    private func capture(_ name: String) {
+        XCTContext.runActivity(named: "Screenshot-" + name) { activity in
+            let attachment = XCTAttachment(screenshot: app.screenshot())
+            attachment.name = name
+            attachment.lifetime = .keepAlways
+            activity.add(attachment)
+        }
+    }
+
+    private func showCompanionPage(_ page: Int) {
+        if app.buttons["看资料"].exists { app.buttons["看资料"].tap() }
+        let tab = app.buttons["rightTab-" + String(page)]
+        XCTAssertTrue(tab.waitForExistence(timeout: 5))
+        XCTAssertTrue(tab.isSelected, "右侧资料页应与档案翻页同步")
+    }
+
+    private func returnToPortrait() {
+        if app.buttons["看档案"].exists { app.buttons["看档案"].tap() }
+        XCTAssertTrue(app.buttons["向右"].waitForExistence(timeout: 5))
+    }
+
+    private func visible(_ query: XCUIElementQuery, file: StaticString = #filePath, line: UInt = #line) throws -> XCUIElement {
+        let appears = XCTNSPredicateExpectation(predicate: NSPredicate { _, _ in
+            query.allElementsBoundByIndex.contains(where: { $0.isHittable })
+        }, object: nil)
+        XCTAssertEqual(XCTWaiter.wait(for: [appears], timeout: 5), .completed, file: file, line: line)
+        return try XCTUnwrap(query.allElementsBoundByIndex.first(where: { $0.isHittable }), file: file, line: line)
+    }
+
+    func testDuoFormProfileAndSkillsStayInSync() {
+        lookup("001")
+        app.buttons["chooseForm"].tap()
+        let form = app.buttons["entry-10560"]
+        XCTAssertTrue(form.waitForExistence(timeout: 5), app.debugDescription)
+        form.tap()
+        XCTAssertTrue(app.staticTexts["圣火迪莫"].firstMatch.waitForExistence(timeout: 5))
+        capture("01-fire-dimo-portrait")
+        showCompanionPage(0)
+        XCTAssertTrue(app.staticTexts["点燃"].firstMatch.exists)
+        XCTAssertTrue(app.staticTexts["598"].exists)
+        capture("02-fire-dimo-stats")
+
+        app.buttons["rightTab-1"].tap()
+        XCTAssertTrue(app.buttons["skill-level-skill_000248"].waitForExistence(timeout: 5))
+        XCTAssertTrue(app.buttons["skill-level-skill_000398"].exists)
+        capture("03-fire-dimo-skills")
+        returnToPortrait()
+        XCTAssertTrue(app.staticTexts["进化"].firstMatch.exists)
+        XCTAssertTrue(app.buttons.matching(NSPredicate(format: "label CONTAINS %@", "圣火迪莫")).firstMatch.exists)
+    }
+
+    func testDuoEvolutionAndSkillDetail() throws {
+        lookup("013")
+        app.buttons["向右"].tap()
+        XCTAssertTrue(app.staticTexts["进化"].firstMatch.waitForExistence(timeout: 3))
+        for name in ["板板壳", "咔咔壳", "水泡壳"] {
+            XCTAssertTrue(app.buttons.matching(NSPredicate(format: "label CONTAINS %@", name)).firstMatch.exists, name)
+        }
+        capture("04-shell-evolution")
+        showCompanionPage(1)
+        let soap = app.buttons["skill-level-skill_000436"]
+        XCTAssertTrue(soap.waitForExistence(timeout: 5))
+        app.buttons["skillExpand"].tap()
+        XCTAssertTrue(app.buttons["收起技能图鉴"].waitForExistence(timeout: 5))
+        let filter = try visible(app.buttons.matching(identifier: "skillFilter-level"))
+        filter.tap()
+        XCTAssertTrue(filter.isSelected)
+        let search = try visible(app.textFields.matching(identifier: "skillSearch"))
+        search.tap()
+        search.typeText("Lv.34\n")
+        let waterCannon = app.buttons["skill-level-skill_000422"].firstMatch
+        XCTAssertTrue(waterCannon.waitForExistence(timeout: 5))
+        XCTAssertFalse(soap.firstMatch.exists)
+        try visible(app.buttons.matching(identifier: "清空搜索")).tap()
+        let shownSoap = try visible(app.buttons.matching(identifier: "skill-level-skill_000436"))
+        capture("05-shell-skill-guide")
+        shownSoap.tap()
+        let close = app.buttons["skillDetailClose"]
+        XCTAssertTrue(close.waitForExistence(timeout: 5))
+        for value in ["肥皂泡", "水系", "魔攻", "威力", "60", "能耗", "1", "自学 · Lv.1", "对敌方精灵造成魔法伤害。"] {
+            XCTAssertTrue(app.staticTexts[value].firstMatch.exists, value)
+        }
+        capture("06-soap-bubble-detail")
+        close.tap()
+        XCTAssertTrue(close.waitForNonExistence(timeout: 5))
+        let collapse = app.buttons["收起技能图鉴"].firstMatch
+        XCTAssertTrue(collapse.waitForExistence(timeout: 5))
+        collapse.tap()
+        returnToPortrait()
+        XCTAssertTrue(app.staticTexts["进化"].firstMatch.exists)
+    }
+
+    func testDuoHabitatAndInteractiveMap() {
+        lookup("046")
+        app.buttons["向左"].tap()
+        XCTAssertTrue(app.staticTexts["生态与获取"].waitForExistence(timeout: 5))
+        let knownAreas = app.staticTexts.matching(NSPredicate(format: "label CONTAINS %@ AND label CONTAINS %@", "风息山口", "风眠圣所"))
+        XCTAssertTrue(knownAreas.firstMatch.exists)
+        capture("07-kawazhong-habitat")
+        showCompanionPage(2)
+        let open = app.buttons["expandHabitatMap"]
+        XCTAssertTrue(open.waitForExistence(timeout: 5))
+        XCTAssertTrue(open.label.contains("卡瓦重"))
+        capture("08-kawazhong-map-preview")
+        open.tap()
+        let ritualTown = app.buttons["仪式镇"]
+        XCTAssertTrue(ritualTown.waitForExistence(timeout: 5))
+        XCTAssertTrue(app.buttons["信仰者村落"].exists)
+        capture("09-kawazhong-map")
+        ritualTown.tap()
+        XCTAssertTrue(app.staticTexts["精灵栖息地 · 洛克里安 · 仪式镇"].waitForExistence(timeout: 5))
+        app.buttons["重置视角"].tap()
+        app.buttons["closeHabitatMap"].tap()
+        XCTAssertTrue(open.waitForExistence(timeout: 5))
+        app.buttons["rightTab-0"].tap()
+        returnToPortrait()
+        XCTAssertTrue(app.buttons["查看特性和完整档案"].waitForExistence(timeout: 5))
+
+        lookup("008")
+        app.buttons["向左"].tap()
+        XCTAssertTrue(app.staticTexts["水蓝蓝的果实"].firstMatch.waitForExistence(timeout: 5))
+        showCompanionPage(2)
+        open.tap()
+        XCTAssertTrue(app.staticTexts["当前地图尚未收录该形态的野外定位。"].waitForExistence(timeout: 5))
+        app.buttons["closeHabitatMap"].tap()
     }
 
     func testSharedNumberOpensDistinctFormsAndHighNumberSearch() {
@@ -124,6 +251,28 @@ final class FieldGuideUITests: XCTestCase {
         XCTAssertTrue(app.staticTexts["铃兰夫人"].firstMatch.waitForExistence(timeout: 5))
         XCTAssertTrue(app.staticTexts["NO. 496"].firstMatch.exists)
         XCTAssertFalse(app.buttons["portraitMediaToggle"].exists)
+    }
+
+    func testIndexElementFiltersCombineWithDexNumber() {
+        openKeypad()
+        app.buttons["按编号查找"].tap()
+        XCTAssertTrue(app.navigationBars["精灵名册"].waitForExistence(timeout: 5))
+        let fire = app.buttons["火系，62 个形态"]
+        XCTAssertTrue(fire.waitForExistence(timeout: 5))
+        XCTAssertTrue(app.buttons["水系，84 个形态"].exists)
+        fire.tap()
+        XCTAssertTrue(fire.isSelected)
+        capture("10-index-elements")
+
+        let search = app.searchFields.firstMatch
+        search.tap()
+        search.typeText("001\n")
+        let fireDimo = app.buttons["entry-10560"]
+        XCTAssertTrue(fireDimo.waitForExistence(timeout: 5))
+        XCTAssertFalse(app.buttons["entry-1"].exists)
+        XCTAssertFalse(app.buttons["entry-10561"].exists)
+        fireDimo.tap()
+        XCTAssertTrue(app.staticTexts["圣火迪莫"].firstMatch.waitForExistence(timeout: 5))
     }
 
     func testInvalidNumberCanBeCorrectedOrCancelled() {

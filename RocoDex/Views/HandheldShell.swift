@@ -5,32 +5,19 @@ enum DeckKey: Equatable {
     case scan, up, down, left, right, search, cancel, backspace, clear, info
 }
 
-/// The compact surface can be driven externally when lookup or scanning completes.
-struct HandheldShell<Left: View, Right: View>: View {
-    private let scanning: Bool
-    private let compactControls: Binding<Bool>?
-    private let leftScreen: Left
-    private let rightScreen: Right
-    private let onKey: (DeckKey) -> Void
-    @State private var localControls = false
+struct HandheldShell<Left: View, Right: View, KeypadScreen: View>: View {
+    @Binding var page: ArchivePage
+    @Binding var keypadOpen: Bool
+    let scanActive: Bool
+    let scanning: Bool
+    @ViewBuilder let leftScreen: Left
+    @ViewBuilder let rightScreen: Right
+    @ViewBuilder let keypadScreen: KeypadScreen
+    let onKey: (DeckKey) -> Void
+
+    @State private var compactDetail = false
     @State private var folded = false
     @State private var feedbackTick = 0
-
-    init(
-        compactControls: Binding<Bool>? = nil,
-        scanning: Bool = false,
-        @ViewBuilder leftScreen: () -> Left,
-        @ViewBuilder rightScreen: () -> Right,
-        onKey: @escaping (DeckKey) -> Void
-    ) {
-        self.scanning = scanning
-        self.compactControls = compactControls
-        self.leftScreen = leftScreen()
-        self.rightScreen = rightScreen()
-        self.onKey = onKey
-    }
-
-    private var showingControls: Bool { compactControls?.wrappedValue ?? localControls }
 
     var body: some View {
         GeometryReader { proxy in
@@ -45,7 +32,7 @@ struct HandheldShell<Left: View, Right: View>: View {
             ZStack {
                 DeckPalette.edge.ignoresSafeArea()
                 HStack(spacing: 0) {
-                    if wide || !showingControls {
+                    if wide || !(keypadOpen || compactDetail) {
                         panel(isRight: false, compact: !wide, headerInsets: headerInsets, homeInset: safe.bottom)
                     }
                     if wide {
@@ -53,7 +40,7 @@ struct HandheldShell<Left: View, Right: View>: View {
                             .frame(width: min(24, size.width * 0.029))
                             .accessibilityHidden(true)
                     }
-                    if wide || showingControls {
+                    if wide || keypadOpen || compactDetail {
                         panel(isRight: true, compact: !wide, headerInsets: headerInsets, homeInset: safe.bottom)
                     }
                 }
@@ -80,14 +67,15 @@ struct HandheldShell<Left: View, Right: View>: View {
         onKey(key)
     }
 
-    private func changePanel() {
-        let next = !showingControls
-        if let compactControls {
-            compactControls.wrappedValue = next
-        } else {
-            localControls = next
-        }
+    private func openKeypad() {
+        compactDetail = false
+        keypadOpen = true
         feedbackTick &+= 1
+    }
+
+    private func leaveRightPanel() {
+        compactDetail = false
+        trigger(.cancel)
     }
 
     private func panel(isRight: Bool, compact: Bool, headerInsets: EdgeInsets, homeInset: CGFloat) -> some View {
@@ -106,7 +94,33 @@ struct HandheldShell<Left: View, Right: View>: View {
                 DeckRedPanel(isRight: isRight)
                     .accessibilityHidden(true)
                 header(isRight: isRight, compact: compact, size: size, height: h * headerFraction, insets: headerInsets)
-                if isRight {
+                if isRight && !(keypadOpen || scanActive) {
+                    let top = h * headerFraction
+                    VStack(spacing: 0) {
+                        HStack(spacing: 0) {
+                            ForEach(ArchivePage.allCases, id: \.self) { tab in
+                                Button { page = tab } label: {
+                                    VStack(spacing: 3) {
+                                        Label(tab.rightTitle, systemImage: tab.symbol)
+                                            .font(.system(size: 14, weight: .bold, design: .rounded))
+                                            .frame(maxWidth: .infinity)
+                                        Capsule().fill(tab == page ? Color(red: 1, green: 0.79, blue: 0.36) : .clear)
+                                            .frame(height: 2).padding(.horizontal, 8)
+                                    }.padding(.top, 7).padding(.bottom, 3)
+                                }.buttonStyle(.plain)
+                                    .foregroundStyle(tab == page ? Color(red: 1, green: 0.79, blue: 0.36) : .white.opacity(0.76))
+                                    .accessibilityAddTraits(tab == page ? .isSelected : [])
+                                    .accessibilityIdentifier("rightTab-\(tab.rawValue)")
+                            }
+                        }.background(Color(red: 0.16, green: 0.18, blue: 0.19))
+                        rightScreen
+                            .frame(maxWidth: .infinity, maxHeight: .infinity)
+                    }
+                    .background(Color(red: 0.22, green: 0.25, blue: 0.26))
+                    .clipShape(RoundedRectangle(cornerRadius: 12))
+                    .overlay { RoundedRectangle(cornerRadius: 12).strokeBorder(.black.opacity(0.75), lineWidth: 2).allowsHitTesting(false) }
+                    .deckFrame(x: horizontalPadding, y: top, w: contentWidth, h: touchFloor - top - gapBelowScreen(h))
+                } else if isRight {
                     let usableHeight = h * (1 - headerFraction)
                     let headerEnd = h * headerFraction
                     let screenHeight = usableHeight * (compact ? 0.39 : 0.31)
@@ -116,7 +130,7 @@ struct HandheldShell<Left: View, Right: View>: View {
                     let actionHeight = usableHeight * (compact ? 0.115 : 0.14)
                     let keyboardStart = headerEnd + screenHeight + gap
                     let functionStart = keyboardStart + keypadHeight + gap
-                    rightScreen
+                    keypadScreen
                         .frame(maxWidth: .infinity, maxHeight: .infinity)
                         .background(DeckPalette.lcd)
                         .clipShape(RoundedRectangle(cornerRadius: 5))
@@ -193,21 +207,37 @@ struct HandheldShell<Left: View, Right: View>: View {
                 .shadow(color: .white.opacity(0.29), radius: 0.3, y: 1)
                 if compact { Spacer(minLength: 0) }
             }
-            if compact {
-                Button(action: changePanel) {
-                    Label(isRight ? "看档案" : "查编号", systemImage: isRight ? "book.closed" : "number")
-                        .font(.system(size: 14, weight: .semibold))
-                        .foregroundStyle(.white)
-                        .padding(.horizontal, 12)
-                        .frame(minHeight: 44)
-                        .background(.black.opacity(0.28), in: Capsule())
-                }
-                .buttonStyle(.plain)
+            if compact && isRight {
+                headerButton("看档案", symbol: "book.closed", action: leaveRightPanel)
+            } else if compact && !isRight && !scanActive {
+                headerButton("看资料", symbol: "book.pages") { compactDetail = true }
+            }
+            if (!isRight && compact && !scanActive) || (isRight && !keypadOpen && !scanActive) {
+                headerButton("查编号", symbol: "number", action: openKeypad)
+            }
+            if isRight && !compact && keypadOpen && !scanActive {
+                headerButton("返回资料", symbol: "book.closed", action: leaveRightPanel)
             }
         }
         .padding(.leading, max(size.width * 0.064, insets.leading))
         .padding(.trailing, max(size.width * 0.064, insets.trailing))
         .frame(width: size.width, height: height * 0.88)
+    }
+
+    private func gapBelowScreen(_ height: CGFloat) -> CGFloat { max(4, min(16, height * 0.018)) }
+
+    private func headerButton(_ title: String, symbol: String, action: @escaping () -> Void) -> some View {
+        Button(action: action) {
+            Label(title, systemImage: symbol)
+                .font(.system(size: 12, weight: .bold))
+                .lineLimit(1).minimumScaleFactor(0.75)
+                .foregroundStyle(.white)
+                .padding(.horizontal, 8)
+                .frame(minHeight: 32)
+                .background(.black.opacity(0.32), in: Capsule())
+                .frame(minHeight: 44)
+                .contentShape(Rectangle())
+        }.buttonStyle(.plain)
     }
 
     private func screenBezel(screenHeight: CGFloat, panelWidth: CGFloat) -> some View {
