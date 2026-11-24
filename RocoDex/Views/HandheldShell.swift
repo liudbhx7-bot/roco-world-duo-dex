@@ -106,7 +106,7 @@ struct HandheldShell<Left: View, Right: View, KeypadScreen: View>: View {
                                             .frame(maxWidth: .infinity)
                                         Capsule().fill(tab == page ? Color(red: 1, green: 0.79, blue: 0.36) : .clear)
                                             .frame(height: 2).padding(.horizontal, 8)
-                                    }.padding(.top, 7).padding(.bottom, 3)
+                                    }.frame(minHeight: short ? 34 : 44).contentShape(Rectangle())
                                 }.buttonStyle(.plain)
                                     .foregroundStyle(tab == page ? Color(red: 1, green: 0.79, blue: 0.36) : .white.opacity(0.76))
                                     .accessibilityAddTraits(tab == page ? .isSelected : [])

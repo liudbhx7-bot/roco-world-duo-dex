@@ -4,6 +4,7 @@ struct HabitatSource: Decodable {
     let kind: String
     let name: String
     let detail: String
+    let reference: URL?
 }
 
 struct HabitatEntry: Decodable {

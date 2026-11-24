@@ -58,7 +58,7 @@ final class DexNarratorTests: XCTestCase {
                 if levels.average > -40 { audibleIntervals += 1 }
             }
         }
-        print("RocoDex AUDIO_CHECK track=008.m4a zh voice=zf_001 route=\(route) mediaVolume=\(volume) peakDBFS=\(maxPeak) audibleIntervals=\(audibleIntervals)")
+        print("RocoDex AUDIO_CHECK track=008.m4a route=\(route) mediaVolume=\(volume) peakDBFS=\(maxPeak) audibleIntervals=\(audibleIntervals)")
         XCTAssertNil(narrator.unavailableMessage)
         XCTAssertFalse(narrator.isSpeaking)
         XCTAssertFalse(route.isEmpty)

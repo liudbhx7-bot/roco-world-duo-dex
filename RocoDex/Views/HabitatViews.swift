@@ -31,7 +31,7 @@ struct HabitatInfoPanel: View {
                         label("栖息记录", symbol: "leaf")
                         Text(entry.habitat)
                     }
-                    ForEach(["进化", "精灵果实", "特殊精灵蛋", "限时获取"], id: \.self) { kind in
+                    ForEach(["野外捕捉", "进化", "精灵果实", "特殊精灵蛋", "限时获取"], id: \.self) { kind in
                         let rows = entry.sources.filter { $0.kind == kind }
                         if !rows.isEmpty {
                             label(kind, symbol: sourceSymbol(kind))
@@ -40,6 +40,9 @@ struct HabitatInfoPanel: View {
                                     Text(rows[i].name).fontWeight(.semibold)
                                     if !rows[i].detail.isEmpty {
                                         Text(rows[i].detail).foregroundStyle(.secondary)
+                                    }
+                                    if let reference = rows[i].reference {
+                                        Link("查看官方公告", destination: reference).font(.caption)
                                     }
                                 }
                             }
@@ -70,6 +73,7 @@ struct HabitatInfoPanel: View {
 
     private func sourceSymbol(_ kind: String) -> String {
         switch kind {
+        case "野外捕捉": return "binoculars"
         case "进化": return "arrow.triangle.branch"
         case "精灵果实": return "leaf.fill"
         case "限时获取": return "calendar"

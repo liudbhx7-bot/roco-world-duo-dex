@@ -169,6 +169,7 @@ private struct SkillGridPanel: View {
                     .frame(width: large ? 36 : 29, height: large ? 34 : 26)
                     .background(SkillPalette.card, in: Capsule())
                     .overlay { Capsule().strokeBorder(SkillPalette.line) }
+                    .frame(minWidth: 44, minHeight: compact ? 32 : 44).contentShape(Rectangle())
             }
             .accessibilityLabel(expanded ? "收起技能图鉴" : "放大技能图鉴")
             .accessibilityIdentifier("skillExpand")
@@ -207,6 +208,7 @@ private struct SkillGridPanel: View {
             .frame(height: large ? 29 : (compact ? 20 : 23))
             .background(SkillPalette.card, in: Capsule())
             .overlay { Capsule().strokeBorder(selected ? SkillPalette.blue : SkillPalette.line) }
+            .frame(minWidth: 44, minHeight: compact ? 32 : 44).contentShape(Rectangle())
         }
         .font(.system(size: large ? 14 : 11, weight: .semibold))
         .foregroundStyle(selected ? SkillPalette.blue : Color.white.opacity(0.86))
