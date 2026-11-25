@@ -31,10 +31,13 @@ struct FieldGuideView: View {
     @State private var reviewImage: UIImage?
     @State private var adjustingFrame = false
     @State private var candidates: [Int] = []
+    @State private var pendingIntroduction: Task<Void, Never>?
+    @State private var portraitPlayback = PortraitPlayback()
     @StateObject private var narrator = DexNarrator()
     @AppStorage("currentSpirit") private var selected = 8
     @AppStorage("foundSpirits") private var foundIDs = ""
-    @AppStorage("voiceOnScan") private var voice = false
+    @AppStorage("voiceOnScan") private var voice = true
+    @AppStorage(DeckSound.preferenceKey) private var soundEnabled = true
     @Environment(\.scenePhase) private var phase
 
     init(catalog: Catalog) {
@@ -45,10 +48,11 @@ struct FieldGuideView: View {
     private var found: Set<Int> { Set(foundIDs.split(separator:",").compactMap { Int($0) }) }
 
     var body: some View {
-        HandheldShell(page: $page, keypadOpen: $controls, scanActive: stage != .archive, scanning:stage == .aim || stage == .working, leftScreen: {
+        HandheldShell(page: $page, keypadOpen: $controls, scanActive: stage != .archive, scanning:stage == .aim || stage == .working,
+                      isSpeaking: narrator.isSpeaking, lamp: narrator.lamp, leftScreen: {
             leftLCD.overlay(alignment:.topLeading) {
                 if stage == .aim || stage == .miss || stage == .working {
-                    Button { stopScan(); notice = "" } label: {
+                    Button(feedback: .key) { stopScan(); notice = "" } label: {
                         Image(systemName:"chevron.backward").font(.caption.bold()).padding(8)
                             .background(.black.opacity(0.62),in:Circle())
                     }.buttonStyle(.plain).foregroundStyle(.white).padding(3)
@@ -79,7 +83,7 @@ struct FieldGuideView: View {
                 if stage == .aim && !pickingPhoto && indexScope == nil { camera.start() }
             } else {
                 camera.stop()
-                narrator.stop()
+                stopIntroduction()
             }
         }
         .sheet(isPresented:$adjustingFrame) {
@@ -90,11 +94,11 @@ struct FieldGuideView: View {
             }
         }
         .sheet(item: $indexScope, onDismiss: { indexQuery = ""; indexType = nil }) { scope in indexSheet(scope) }
-        .sheet(isPresented:$showDetails, onDismiss: narrator.stop) {
+        .sheet(isPresented:$showDetails, onDismiss: stopIntroduction) {
             detailSheet.modifier(NarrationAlert(message: $narrator.unavailableMessage, active: true))
         }
         .modifier(NarrationAlert(message: $narrator.unavailableMessage, active: !showDetails))
-        .onDisappear { camera.stop(); scanTask?.cancel() }
+        .onDisappear { camera.stop(); scanTask?.cancel(); stopIntroduction() }
     }
 
     @ViewBuilder private var leftLCD: some View {
@@ -105,7 +109,8 @@ struct FieldGuideView: View {
                         openForms: {
                             indexScope = .forms(spirit.dexNumber ?? spirit.id)
                         },
-                        animationURL: catalog.animationURLs[spirit.id], isNarrating: narrator.isSpeaking,
+                        animation: catalog.animations[spirit.id], playback: portraitPlayback,
+                        isNarrating: narrator.isSpeaking,
                         toggleNarration: toggleNarration)
         case .aim,.working:
             ZStack {
@@ -121,6 +126,7 @@ struct FieldGuideView: View {
                     VStack(spacing:4) {
                         Text("相机权限已关闭")
                         Button("打开设置") {
+                            DeckSound.key.play()
                             if let url = URL(string:UIApplication.openSettingsURLString) { UIApplication.shared.open(url) }
                         }.buttonStyle(.bordered)
                         importButton
@@ -128,7 +134,7 @@ struct FieldGuideView: View {
                 case .unavailable:
                     VStack(spacing:6) { Image(systemName:"photo.on.rectangle.angled"); Text("当前设备无可用相机"); importButton }
                 case .failed(let reason):
-                    VStack(spacing:3) { Text(reason).lineLimit(2); Button("重试相机") { camera.start() }; importButton }
+                    VStack(spacing:3) { Text(reason).lineLimit(2); Button("重试相机") { DeckSound.scan.play(); camera.start() }; importButton }
                 }
                 if stage == .working {
                     VStack(spacing:6) { ProgressView().tint(.white); Text("正在比对精灵") }
@@ -165,13 +171,13 @@ struct FieldGuideView: View {
     }
 
     private var cropButton: some View {
-        Button { adjustingFrame = true } label: {
+        Button(feedback: .key) { adjustingFrame = true } label: {
             Label("框选精灵",systemImage:"crop").font(.caption.bold()).padding(.horizontal,8).padding(.vertical,6)
         }.buttonStyle(.plain).background(.white.opacity(0.15),in:Capsule())
     }
 
     private var importButton: some View {
-        Button { pickingPhoto = true } label: {
+        Button(feedback: .key) { pickingPhoto = true } label: {
             Label("从相册识别",systemImage:"photo").font(.caption.bold()).padding(.horizontal,8).padding(.vertical,6)
         }.buttonStyle(.plain).background(.black.opacity(0.62),in:Capsule()).foregroundStyle(.white)
     }
@@ -199,7 +205,8 @@ struct FieldGuideView: View {
 
     private func choose(_ id:Int, resetPage:Bool = true) {
         stopScan()
-        narrator.stop()
+        stopIntroduction()
+        portraitPlayback = PortraitPlayback()
         selected = id; digits = ""; notice = ""; controls = false
         if resetPage { page = .profile }
     }
@@ -209,10 +216,26 @@ struct FieldGuideView: View {
         foundIDs = all.sorted().map(String.init).joined(separator:",")
         choose(id)
         UINotificationFeedbackGenerator().notificationOccurred(.success)
-        if voice { narrator.speak(entry) }
+        let played = DeckSound.found.play()
+        guard voice, UIApplication.shared.applicationState == .active else { return }
+        pendingIntroduction = Task { @MainActor in
+            // Leave room for the 465 ms confirmation jingle and its release.
+            if played { try? await Task.sleep(for: .milliseconds(540)) }
+            guard !Task.isCancelled, UIApplication.shared.applicationState == .active else { return }
+            narrator.speak(entry)
+        }
+    }
+
+    private func stopIntroduction() {
+        pendingIntroduction?.cancel()
+        pendingIntroduction = nil
+        narrator.stop()
     }
 
     private func toggleNarration() {
+        DeckSound.key.play()
+        pendingIntroduction?.cancel()
+        pendingIntroduction = nil
         if narrator.isSpeaking { narrator.stop() }
         else { narrator.speak(spirit) }
     }
@@ -223,8 +246,9 @@ struct FieldGuideView: View {
         stage = .archive; reviewImage = nil
     }
     private func beginAim() {
-        stopScan(); narrator.stop(); digits = ""; notice = ""; controls = false
+        stopScan(); stopIntroduction(); digits = ""; notice = ""; controls = false
         stage = .aim
+        DeckSound.scan.play()
         camera.start()
     }
 
@@ -232,6 +256,7 @@ struct FieldGuideView: View {
         scanTask?.cancel()
         let token = UUID(); generation = token
         if !reframing { reviewImage = nil }
+        DeckSound.key.play()
         controls = false; stage = .working; digits = ""
         scanTask = Task { @MainActor in
             do {
@@ -244,12 +269,15 @@ struct FieldGuideView: View {
                 switch result {
                 case .match(let id): discover(id)
                 case .candidates(let ids):
+                    DeckSound.choice.play()
                     candidates = ids; stage = .choices
                 case .unknown:
+                    DeckSound.miss.play()
                     notice = "没有匹配到已收录的精灵"; stage = .miss
                 }
             } catch {
                 guard generation == token, !Task.isCancelled else { return }
+                DeckSound.miss.play()
                 camera.stop(); notice = "这张图片未能读取，请重试"; stage = .miss
             }
         }
@@ -266,27 +294,36 @@ struct FieldGuideView: View {
     private func press(_ key: DeckKey) {
         switch key {
         case .digit(let digit):
+            DeckSound.key.play()
             if stage != .archive { stopScan() }
             notice = ""
             digits = digits.count >= 3 ? String(digit) : digits + String(digit)
             controls = true
-        case .clear: digits = ""; notice = ""
+        case .clear: DeckSound.key.play(); digits = ""; notice = ""
         case .backspace:
+            DeckSound.key.play()
             if !digits.isEmpty { digits.removeLast() }; notice = ""
         case .cancel:
+            DeckSound.key.play()
+            pendingIntroduction?.cancel()
             stopScan(); digits = ""; notice = ""; controls = false
         case .search:
             guard !digits.isEmpty else {
+                DeckSound.key.play()
                 stopScan(); notice = ""; indexScope = .all; return
             }
             if let number = Int(digits), let entry = catalog.forms(number:number).first {
+                DeckSound.page.play()
                 choose(entry.id)
-            } else { notice = "未收录这个编号，请重新输入编号" }
+            } else {
+                DeckSound.miss.play()
+                notice = "未收录这个编号，请重新输入编号"
+            }
         case .scan:
             if stage == .aim {
                 switch camera.state {
                 case .ready: runScan { try await camera.capture() }
-                case .denied,.unavailable,.failed: pickingPhoto = true
+                case .denied,.unavailable,.failed: DeckSound.key.play(); pickingPhoto = true
                 default: break
                 }
             } else if stage != .working { beginAim() }
@@ -294,14 +331,17 @@ struct FieldGuideView: View {
             guard stage == .archive else { return }
             let delta: Int
             if case .left = key { delta = -1 } else { delta = 1 }
+            DeckSound.page.play()
             page = page.shifted(delta); notice = ""; digits = ""
         case .up,.down:
             guard stage == .archive,let index = catalog.entries.firstIndex(where:{$0.id == spirit.id}) else { return }
             let delta: Int
             if case .up = key { delta = -1 } else { delta = 1 }
+            DeckSound.page.play()
             let count = catalog.entries.count
             choose(catalog.entries[(index + delta + count) % count].id)
         case .info:
+            DeckSound.key.play()
             stopScan(); indexScope = .all
         }
     }
@@ -334,7 +374,7 @@ struct FieldGuideView: View {
                     }
                 }
                 .navigationTitle("选择形态")
-                .toolbar { ToolbarItem(placement: .confirmationAction) { Button("完成") { indexScope = nil } } }
+                .toolbar { ToolbarItem(placement: .confirmationAction) { Button("完成") { DeckSound.key.play(); indexScope = nil } } }
             } else {
                 catalogList
             }
@@ -348,11 +388,20 @@ struct FieldGuideView: View {
             if indexQuery.isEmpty {
                 Section {
                     Toggle("识别成功时朗读",isOn:$voice)
+                        .onChange(of: voice) { _, enabled in
+                            DeckSound.key.play()
+                            if !enabled { pendingIntroduction?.cancel() }
+                        }
+                    Toggle("按键与扫描音效", isOn: $soundEnabled)
+                        .accessibilityIdentifier("feedbackSoundToggle")
+                        .onChange(of: soundEnabled) { _, enabled in
+                            if enabled { DeckSound.key.play() }
+                        }
                     DisclosureGroup("资料与配音") {
                         Link("洛克王国世界 WIKI · 精灵图鉴", destination: URL(string:"https://wiki.biligame.com/nrc/")!.appendingPathComponent("精灵图鉴"))
                         Link("图鉴资料整理 · CC BY-SA 4.0", destination: URL(string:"https://creativecommons.org/licenses/by-sa/4.0/")!)
                         Text("本图鉴整合了 Wiki 档案与进化分支。游戏角色与美术归原权利人所有。")
-                        Link("介绍配音 · Qwen3-TTS 温暖观察", destination: URL(string:"https://github.com/QwenLM/Qwen3-TTS")!)
+                        Link("介绍配音 · 原创掌机图鉴声线", destination: URL(string:"https://github.com/QwenLM/Qwen3-TTS")!)
                     }.font(.footnote)
                 }
             }
@@ -367,12 +416,12 @@ struct FieldGuideView: View {
             }
         }.navigationTitle("精灵名册")
             .searchable(text:$indexQuery, placement:.navigationBarDrawer(displayMode:.always), prompt:"名称、形态、系别或编号")
-            .toolbar { ToolbarItem(placement:.confirmationAction) { Button("完成") { indexScope = nil } } }
+            .toolbar { ToolbarItem(placement:.confirmationAction) { Button("完成") { DeckSound.key.play(); indexScope = nil } } }
     }
 
     private func indexRow(_ entry: Spirit, discovered: Set<Int>? = nil) -> some View {
         let discovered = discovered ?? found
-        return Button {
+        return Button(feedback: .page) {
             indexScope = nil; choose(entry.id)
         } label: {
             HStack {
@@ -402,12 +451,9 @@ struct FieldGuideView: View {
                               systemImage: narrator.isSpeaking ? "stop.fill" : "speaker.wave.2.fill")
                     }
                     .accessibilityIdentifier("detailNarration")
-                    if let source = spirit.sourceURL, let url = URL(string:source) {
-                        Link("查看原始图鉴", destination:url)
-                    }
                 }
             }.navigationTitle(spirit.number + " " + spirit.formattedName)
-                .toolbar { ToolbarItem(placement:.confirmationAction) { Button("完成") { showDetails = false } } }
+                .toolbar { ToolbarItem(placement:.confirmationAction) { Button("完成") { DeckSound.key.play(); showDetails = false } } }
         }
     }
 }
@@ -421,7 +467,7 @@ private struct NarrationAlert: ViewModifier {
             get: { active && message != nil },
             set: { if !$0 && active { message = nil } }
         )) {
-            Button("知道了") { message = nil }
+            Button("知道了") { DeckSound.key.play(); message = nil }
         } message: {
             Text(message ?? "")
         }

@@ -29,7 +29,7 @@ struct HabitatRegion: Decodable {
 }
 
 struct HabitatMap: Decodable {
-    let name, season: String
+    let name: String
 }
 
 final class HabitatCatalog {

@@ -46,35 +46,55 @@ struct DeckRedPanel: View {
 
 struct DeckLens: View {
     let scanning: Bool
+    let isSpeaking: Bool
+    @ObservedObject var lamp: NarrationLampSignal
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+
     var body: some View {
-        GeometryReader { proxy in
-            let d = min(proxy.size.width, proxy.size.height)
-            ZStack {
-                Circle().fill(DeckPalette.edge)
-                Circle().inset(by: d * 0.028)
-                    .fill(LinearGradient(colors: [.white, .gray, .white], startPoint: .topLeading, endPoint: .bottomTrailing))
-                Circle().inset(by: d * 0.096)
-                    .fill(RadialGradient(colors: [Color(red: 0.40, green: 0.95, blue: 1.0),
-                                                  Color(red: 0, green: 0.59, blue: 0.96),
-                                                  Color(red: 0.015, green: 0.17, blue: 0.48)],
-                                         center: UnitPoint(x: 0.31, y: 0.24),
-                                         startRadius: d * 0.02, endRadius: d * 0.70))
-                if scanning {
-                    Circle().inset(by: d * 0.10).fill(.cyan.opacity(0.35))
-                        .phaseAnimator([false,true]) { light, on in
-                            light.opacity(reduceMotion || on ? 1 : 0.18)
-                                .shadow(color:.cyan.opacity(0.85), radius: on ? 8 : 2)
-                        } animation: { _ in .easeInOut(duration:0.6) }
+        TimelineView(.animation(minimumInterval: 1.0 / 24, paused: !scanning || reduceMotion)) { timeline in
+            let scanGlow = scanning ? 0.40 + 0.23 * sin(timeline.date.timeIntervalSinceReferenceDate * 4) : 0
+            let glow = reduceMotion ? (scanning || isSpeaking ? 0.48 : 0) : max(lamp.level, scanGlow)
+            Canvas { context, size in
+                let d = min(size.width, size.height)
+                let rim = CGRect(x: (size.width - d) / 2, y: (size.height - d) / 2, width: d, height: d)
+                // Every outline uses this same center, including under non-square layout proposals.
+                func circle(_ inset: CGFloat) -> Path {
+                    Path(ellipseIn: rim.insetBy(dx: inset * d, dy: inset * d))
                 }
-                Ellipse().fill(.white.opacity(0.84))
-                    .frame(width: d * 0.21, height: d * 0.13)
-                    .rotationEffect(.degrees(-38))
-                    .offset(x: -d * 0.13, y: -d * 0.18)
+                func point(_ x: CGFloat, _ y: CGFloat) -> CGPoint {
+                    CGPoint(x: rim.minX + x * d, y: rim.minY + y * d)
+                }
+
+                context.fill(circle(0), with: .color(DeckPalette.edge))
+                context.fill(circle(0.028), with: .linearGradient(
+                    Gradient(colors: [.white, Color(white: 0.81), Color(white: 0.40), Color(white: 0.86)]),
+                    startPoint: point(0.18, 0.08), endPoint: point(0.78, 0.94)))
+                context.fill(circle(0.087), with: .color(Color(red: 0.025, green: 0.15, blue: 0.26)))
+                let glass = circle(0.103)
+                context.fill(glass, with: .radialGradient(
+                    Gradient(stops: [.init(color: Color(red: 0.46, green: 0.94, blue: 1), location: 0),
+                                     .init(color: Color(red: 0.02, green: 0.66, blue: 0.97), location: 0.45),
+                                     .init(color: Color(red: 0.015, green: 0.20, blue: 0.54), location: 1)]),
+                    center: point(0.35, 0.28), startRadius: 0, endRadius: d * 0.65))
+                context.fill(glass, with: .radialGradient(
+                    Gradient(colors: [.white.opacity(0.86 * glow), .cyan.opacity(0.63 * glow)]),
+                    center: point(0.47, 0.42), startRadius: 0, endRadius: d * 0.44))
+
+                var highlight = context
+                let origin = point(0.37, 0.30)
+                highlight.translateBy(x: origin.x, y: origin.y)
+                highlight.rotate(by: .degrees(-38))
+                highlight.fill(Path(ellipseIn: CGRect(x: -d * 0.094, y: -d * 0.056,
+                                                      width: d * 0.188, height: d * 0.112)),
+                               with: .color(.white.opacity(0.88)))
             }
-            .shadow(color: .black.opacity(0.45), radius: 1, y: 2)
         }
-        .accessibilityHidden(true)
+        .shadow(color: .black.opacity(0.38), radius: 1, y: 1.4)
+        .allowsHitTesting(false)
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel("图鉴指示灯")
+        .accessibilityValue(isSpeaking ? "正在播报" : (scanning ? "正在扫描" : "待机"))
+        .accessibilityIdentifier("narrationLamp")
     }
 }
 

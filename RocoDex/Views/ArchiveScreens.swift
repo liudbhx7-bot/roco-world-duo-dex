@@ -33,6 +33,13 @@ struct DisplayGrid: View {
     }
 }
 
+// Keep the current selection's manual choice when moving between pages or folding Duo.
+@Observable final class PortraitPlayback {
+    var animationPreference: Bool?
+    var didStartEntry = false
+    var failed = false
+}
+
 struct PortraitLCD: View {
     let spirit: Spirit
     let catalog: Catalog
@@ -41,15 +48,14 @@ struct PortraitLCD: View {
     let select: (Int) -> Void
     let openDetails: () -> Void
     let openForms: () -> Void
-    let animationURL: URL?
+    let animation: SpiritAnimation?
+    let playback: PortraitPlayback
     let isNarrating: Bool
     let toggleNarration: () -> Void
-    @AppStorage("prefersAnimatedPortraits") private var animationPreference: Bool?
-    @State private var failedAnimation: URL?
     @State private var evolutionRoute = 0
     @Environment(\.scenePhase) private var scenePhase
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
-    private var prefersAnimation: Bool { animationPreference ?? !reduceMotion }
+    private var prefersAnimation: Bool { playback.animationPreference ?? !reduceMotion }
 
     var body: some View {
         GeometryReader { g in
@@ -60,7 +66,7 @@ struct PortraitLCD: View {
                     Text("NO. " + spirit.number).font(.system(size: short ? 10 : 12, weight: .bold, design: .monospaced))
                     let forms = catalog.forms(for: spirit)
                     if forms.count > 1 {
-                        Button(action: openForms) {
+                        Button(feedback: .key, action: openForms) {
                             HStack(spacing: 2) { Text("\(forms.count) 个形态"); Image(systemName:"chevron.down") }
                                 .padding(.horizontal,5).padding(.vertical,2)
                                 .background(spirit.ink.opacity(0.11), in: Capsule())
@@ -85,7 +91,7 @@ struct PortraitLCD: View {
                                     .lineLimit(1).minimumScaleFactor(0.7)
                             }
                             GameTypeIcons(types: spirit.type, size: short ? 16 : 21)
-                            Button(action: openDetails) {
+                            Button(feedback: .key, action: openDetails) {
                                 HStack(spacing: 2) { Text(spirit.trait); Image(systemName: "chevron.right") }
                             }
                             .font(.system(size: short ? 10 : 12,weight:.medium)).buttonStyle(.plain)
@@ -115,7 +121,7 @@ struct PortraitLCD: View {
                     if routes.count > 1 {
                         Menu {
                             ForEach(routes.indices,id:\.self) { index in
-                                Button {
+                                Button(feedback: .page) {
                                     evolutionRoute = index
                                 } label: {
                                     let names = routes[index].compactMap { id in
@@ -171,7 +177,7 @@ struct PortraitLCD: View {
 
     @ViewBuilder private func familyMember(_ id: Int) -> some View {
         if let one = catalog.entries.first(where: { $0.id == id }) {
-            Button { select(id) } label: {
+            Button(feedback: .page) { select(id) } label: {
                 VStack(spacing:2) {
                     if let image = catalog.pictures[id] {
                         Image(uiImage:image).resizable().interpolation(.high).scaledToFit().frame(maxWidth:.infinity,maxHeight:.infinity)
@@ -185,13 +191,12 @@ struct PortraitLCD: View {
     }
 
     private func portrait(_ art: UIImage, short: Bool) -> some View {
-        let availableURL = animationURL == failedAnimation ? nil : animationURL
+        let available = playback.failed ? nil : animation
         return ZStack {
-            if prefersAnimation, let url = availableURL {
-                SpriteAnimationViewport(url: url, name: spirit.name, placeholder: art, active: scenePhase == .active) {
-                    failedAnimation = url
-                }
-                .id(url)
+            if prefersAnimation, let available {
+                SpriteAnimationViewport(animation: available, playback: playback, name: spirit.formattedName,
+                                        placeholder: art, active: scenePhase == .active)
+                    .id(ObjectIdentifier(playback))
             } else {
                 Image(uiImage: art).resizable().scaledToFit()
                     .accessibilityLabel(spirit.name + "立绘")
@@ -203,8 +208,11 @@ struct PortraitLCD: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .clipped()
         .overlay(alignment: .bottomTrailing) {
-            if availableURL != nil {
-                Button { animationPreference = !prefersAnimation } label: {
+            if available != nil {
+                Button(feedback: .key) {
+                    playback.didStartEntry = false
+                    playback.animationPreference = !prefersAnimation
+                } label: {
                     Label(prefersAnimation ? "看静图" : "看动图",
                           systemImage: prefersAnimation ? "photo" : "play.rectangle")
                         .font(.system(size: short ? 9 : 11, weight: .bold, design: .rounded))

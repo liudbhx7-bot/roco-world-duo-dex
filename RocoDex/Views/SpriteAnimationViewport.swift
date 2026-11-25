@@ -2,16 +2,16 @@ import ImageIO
 import SwiftUI
 
 struct SpriteAnimationViewport: UIViewRepresentable {
-    let url: URL
+    let animation: SpiritAnimation
+    let playback: PortraitPlayback
     let name: String
     let placeholder: UIImage
     let active: Bool
-    let didFail: () -> Void
 
     func makeUIView(context: Context) -> SpriteAnimationView {
         let view = SpriteAnimationView()
         view.accessibilityLabel = name + "的动图"
-        view.open(url, placeholder: placeholder, didFail: didFail)
+        view.open(animation, playback: playback, placeholder: placeholder)
         return view
     }
 
@@ -25,7 +25,7 @@ struct SpriteAnimationViewport: UIViewRepresentable {
 }
 
 final class SpriteAnimationView: UIView {
-    private struct Animation {
+    private final class Animation {
         let source: CGImageSource
         let first: CGImage
         let endTimes: [Double]
@@ -62,7 +62,11 @@ final class SpriteAnimationView: UIView {
     }
 
     private let decodeQueue = DispatchQueue(label: "roco.animation.frame", qos: .userInitiated)
-    private var animation: Animation?
+    private var clip: Animation?
+    private var idle: Animation?
+    private var isEntry = false
+    private var openJob: DispatchWorkItem?
+    private var playback: PortraitPlayback?
     private var displayLink: CADisplayLink?
     private var previousTime: CFTimeInterval?
     private var elapsed: CFTimeInterval = 0
@@ -70,20 +74,29 @@ final class SpriteAnimationView: UIView {
     private var pending = false
     private var active = false
     private var closed = false
-    private var didFail: (() -> Void)?
 
-    func open(_ url: URL, placeholder: UIImage, didFail: @escaping () -> Void) {
-        self.didFail = didFail
+    func open(_ motion: SpiritAnimation, playback: PortraitPlayback, placeholder: UIImage) {
+        self.playback = playback
         isOpaque = false
         layer.contentsGravity = .resizeAspect
         layer.contents = placeholder.cgImage
-        decodeQueue.async { [weak self] in
-            let animation = autoreleasepool { Animation(url: url) }
+        let entryURL = playback.didStartEntry ? nil : motion.entry
+        let job = DispatchWorkItem { [weak self] in
+            let entry = entryURL.flatMap { url in autoreleasepool { Animation(url: url) } }
+            // Warm the idle clip and its first bitmap before running the entry clock.
+            let idle = motion.idle.flatMap { url in autoreleasepool { Animation(url: url) } }
             DispatchQueue.main.async { [weak self] in
                 guard let self, !self.closed else { return }
-                guard let animation else { self.fail(); return }
-                self.animation = animation
-                self.present(animation.first, index: 0)
+                guard let first = entry ?? idle else {
+                    if playback.didStartEntry && motion.idle == nil { self.finishEntry() }
+                    else { self.fail() }
+                    return
+                }
+                self.idle = idle
+                self.clip = first
+                self.isEntry = entry != nil
+                if self.isEntry { playback.didStartEntry = true }
+                self.present(first.first, index: 0)
                 self.accessibilityIdentifier = "animationViewport"
                 self.accessibilityTraits = .image
                 self.isAccessibilityElement = true
@@ -93,12 +106,14 @@ final class SpriteAnimationView: UIView {
                 link.add(to: .main, forMode: .common)
             }
         }
+        openJob = job
+        decodeQueue.async(execute: job)
     }
 
     override var accessibilityValue: String? {
         get {
-            guard let animation else { return nil }
-            return "第 \(currentFrame + 1) 帧，共 \(animation.endTimes.count) 帧"
+            guard let clip else { return nil }
+            return "\(isEntry ? "出场" : "待机")，第 \(currentFrame + 1) 帧，共 \(clip.endTimes.count) 帧"
         }
         set { super.accessibilityValue = newValue }
     }
@@ -111,21 +126,30 @@ final class SpriteAnimationView: UIView {
     }
 
     @objc private func tick(_ link: CADisplayLink) {
-        guard let animation, let duration = animation.endTimes.last else { return }
+        guard let clip, let duration = clip.endTimes.last else { return }
         if let previousTime { elapsed += max(0, link.timestamp - previousTime) }
         previousTime = link.timestamp
-        elapsed.formTruncatingRemainder(dividingBy: duration)
+
+        if isEntry && elapsed >= duration {
+            guard let idle else { finishEntry(); return }
+            self.clip = idle
+            isEntry = false
+            elapsed = 0
+            present(idle.first, index: 0)
+            return
+        }
+        if !isEntry { elapsed.formTruncatingRemainder(dividingBy: duration) }
         guard !pending else { return }
-        let index = animation.frame(at: elapsed)
+        let index = clip.frame(at: elapsed)
         guard index != currentFrame else { return }
-        // Decode one frame at a time; a slow display refresh can skip ahead without queuing bitmaps.
+        // Keep at most one in-flight bitmap; a late entry frame cannot overwrite the idle clip.
         pending = true
         decodeQueue.async { [weak self] in
-            let bitmap = autoreleasepool { Animation.decode(animation.source, index: index) }
+            let bitmap = autoreleasepool { Animation.decode(clip.source, index: index) }
             DispatchQueue.main.async { [weak self] in
                 guard let self else { return }
                 self.pending = false
-                guard self.active, !self.closed else { return }
+                guard self.active, !self.closed, self.clip === clip else { return }
                 guard let bitmap else { self.fail(); return }
                 self.present(bitmap, index: index)
             }
@@ -140,18 +164,25 @@ final class SpriteAnimationView: UIView {
         currentFrame = index
     }
 
-    private func fail() {
-        let notify = didFail
+    private func finishEntry() {
+        playback?.animationPreference = false
         close()
-        notify?()
+    }
+
+    private func fail() {
+        playback?.failed = true
+        close()
     }
 
     func close() {
         closed = true
+        openJob?.cancel()
+        openJob = nil
         displayLink?.invalidate()
         displayLink = nil
-        animation = nil
-        didFail = nil
-        layer.contents = nil
+        clip = nil
+        idle = nil
+        playback = nil
+        // Keep the displayed frame until SwiftUI removes the view.
     }
 }

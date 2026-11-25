@@ -48,7 +48,7 @@ struct ScanCropSheet: View {
             .padding()
             .navigationTitle("框选精灵")
             .navigationBarTitleDisplayMode(.inline)
-            .toolbar { ToolbarItem(placement:.cancellationAction) { Button("取消") { dismiss() } } }
+            .toolbar { ToolbarItem(placement:.cancellationAction) { Button("取消") { DeckSound.key.play(); dismiss() } } }
         }
     }
 }

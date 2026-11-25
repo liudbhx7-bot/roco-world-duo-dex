@@ -1,82 +1,72 @@
-import AVFoundation
 import Combine
 import Foundation
 
+/// Subscribed to by the small lens view; changes never invalidate the rest of the deck.
 @MainActor
-final class DexNarrator: NSObject, ObservableObject, AVAudioPlayerDelegate {
-    @Published private(set) var isSpeaking = false
-    @Published var unavailableMessage: String?
+final class NarrationLampSignal: ObservableObject {
+    @Published private(set) var level: Double = 0
+    private var sampler: Task<Void, Never>?
 
-    private let sessionQueue = DispatchQueue(label: "roco.narration.audio-session", qos: .userInitiated)
-    private var player: AVAudioPlayer?
-    private var currentRequest = UUID()
-    private var needsSessionRelease = false
-    private var interruption: NSObjectProtocol?
-
-    override init() {
-        super.init()
-        interruption = NotificationCenter.default.addObserver(
-            forName: AVAudioSession.didBecomeInactiveNotification,
-            object: AVAudioSession.sharedInstance(), queue: .main
-        ) { [weak self] note in
-            guard let context = note.userInfo?[AVAudioSession.deactivationContextKey] as? AVAudioSession.DeactivationContext,
-                  context.source == .system else { return }
-            Task { @MainActor in self?.stop() }
+    fileprivate func follow(_ track: HandheldMediaTrack) {
+        reset()
+        sampler = Task { [weak self, weak track] in
+            while !Task.isCancelled {
+                if let self, let track {
+                    let db = Double(track.playbackLevels()?.average ?? -160)
+                    let target = min(1, max(0, (db + 45) / 39))
+                    // A short attack and slightly longer release keep syllables legible
+                    // without turning the lens fully on and off at every consonant.
+                    let next = self.level + (target - self.level) * (target > self.level ? 0.42 : 0.32)
+                    if abs(next - self.level) >= 0.004 {
+                        self.level = next
+                    } else if target == 0 && self.level != 0 {
+                        self.level = 0
+                    }
+                } else {
+                    return
+                }
+                try? await Task.sleep(for: .milliseconds(60))
+            }
         }
     }
 
-    deinit {
-        if let interruption { NotificationCenter.default.removeObserver(interruption) }
+    fileprivate func reset() {
+        sampler?.cancel()
+        sampler = nil
+        if level != 0 { level = 0 }
     }
+
+    deinit { sampler?.cancel() }
+}
+
+@MainActor
+final class DexNarrator: ObservableObject {
+    @Published private(set) var isSpeaking = false
+    @Published var unavailableMessage: String?
+
+    let lamp = NarrationLampSignal()
+    private let track = HandheldMediaTrack()
 
     func speak(_ spirit: Spirit) {
         stop()
         unavailableMessage = nil
-        let id = currentRequest
-        isSpeaking = true
-        needsSessionRelease = true
-        sessionQueue.async { [weak self] in
-            do {
-                let session = AVAudioSession.sharedInstance()
-                // Use the current media output, including when the Ring/Silent switch is set to silent.
-                try session.setCategory(.playback, mode: .default, options: .duckOthers)
-                try session.setActive(true)
-                DispatchQueue.main.async {
-                    guard let self, self.currentRequest == id else { return }
-                    self.play(spirit)
-                }
-            } catch {
-                DispatchQueue.main.async {
-                    guard let self, self.currentRequest == id else { return }
-                    self.fail("无法打开音频输出，请检查媒体音量及耳机连接后再试。")
-                }
-            }
+        guard let url = Self.trackURL(for: spirit) else {
+            report(.recording)
+            return
         }
+        isSpeaking = true
+        lamp.follow(track)
+        track.play(url, onFinish: { [weak self] error in
+            self?.lamp.reset()
+            self?.isSpeaking = false
+            if let error { self?.report(error) }
+        })
     }
 
     func stop() {
-        currentRequest = UUID()
-        player?.delegate = nil
-        player?.stop()
-        player = nil
+        lamp.reset()
+        track.stop()
         isSpeaking = false
-        if needsSessionRelease {
-            needsSessionRelease = false
-            sessionQueue.async {
-                try? AVAudioSession.sharedInstance().setActive(false, options: .notifyOthersOnDeactivation)
-            }
-        }
-    }
-
-    private func play(_ spirit: Spirit) {
-        if let file = Self.trackURL(for: spirit), let track = try? AVAudioPlayer(contentsOf: file) {
-            track.delegate = self
-            if track.prepareToPlay(), track.play() {
-                player = track
-                return
-            }
-        }
-        fail("这份精灵介绍的录音无法播放，请检查应用资源后重试。")
     }
 
     static func trackURL(for spirit: Spirit) -> URL? {
@@ -85,30 +75,16 @@ final class DexNarrator: NSObject, ObservableObject, AVAudioPlayerDelegate {
         return Bundle.main.url(forResource: recordingID, withExtension: "m4a", subdirectory: "Narration")
     }
 
-    // Sample the active playback path on demand. Metering stays disabled in normal use.
     func playbackLevels() -> (peak: Float, average: Float)? {
-        guard let player, player.isPlaying else { return nil }
-        player.isMeteringEnabled = true
-        player.updateMeters()
-        return (player.peakPower(forChannel: 0), player.averagePower(forChannel: 0))
+        track.playbackLevels()
     }
 
-    nonisolated func audioPlayerDidFinishPlaying(_ player: AVAudioPlayer, successfully flag: Bool) {
-        Task { @MainActor [weak self] in
-            guard let self, self.player === player else { return }
-            if flag { self.stop() } else { self.fail("音轨播放中断，请再试一次。") }
+    private func report(_ error: HandheldPlaybackError) {
+        switch error {
+        case .mediaOutput:
+            unavailableMessage = "无法打开音频输出，请检查媒体音量及耳机连接后再试。"
+        case .recording:
+            unavailableMessage = "这份精灵介绍的录音无法播放，请检查应用资源后重试。"
         }
-    }
-
-    nonisolated func audioPlayerDecodeErrorDidOccur(_ player: AVAudioPlayer, error: Error?) {
-        Task { @MainActor [weak self] in
-            guard let self, self.player === player else { return }
-            self.fail("音轨读取失败，请再试一次。")
-        }
-    }
-
-    private func fail(_ message: String) {
-        stop()
-        unavailableMessage = message
     }
 }

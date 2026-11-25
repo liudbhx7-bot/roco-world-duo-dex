@@ -15,6 +15,7 @@
 		572D04ED1A4BD1262C262F3A /* Sources.json in Resources */ = {isa = PBXBuildFile; fileRef = D0C9AFC1AF7AA38DA1170839 /* Sources.json */; };
 		5CE19F040A41E712D6952A93 /* ScanIndex.json in Resources */ = {isa = PBXBuildFile; fileRef = 5787ECE6E848D33AB4405EA6 /* ScanIndex.json */; };
 		8F0D23AA72BB41AE9397EC42 /* Animations in Resources */ = {isa = PBXBuildFile; fileRef = A2D91291173B4907AB28E98C /* Animations */; };
+		9E3A41DE570B486DA610D002 /* Sounds in Resources */ = {isa = PBXBuildFile; fileRef = 9E3A41DE570B486DA610D001 /* Sounds */; };
 		B0070ACA410F0C060D2F5FA0 /* HeadArt in Resources */ = {isa = PBXBuildFile; fileRef = 03EA41210AD91BCDD1A97CFF /* HeadArt */; };
 		F6A37395BC5C175939307F1F /* Art in Resources */ = {isa = PBXBuildFile; fileRef = 4B8057E2831420F2D019DBA1 /* Art */; };
 /* End PBXBuildFile section */
@@ -37,6 +38,7 @@
 		5787ECE6E848D33AB4405EA6 /* ScanIndex.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = ScanIndex.json; sourceTree = "<group>"; };
 		6CD0C1169A999C9B0428745E /* Spirits.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = Spirits.json; sourceTree = "<group>"; };
 		970FB190220EDCE2E3BBCD1A /* RocoDexTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; path = RocoDexTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		9E3A41DE570B486DA610D001 /* Sounds */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Sounds; sourceTree = "<group>"; };
 		A17E637F087C4CABBB85DD50 /* BattleGuide */ = {isa = PBXFileReference; lastKnownFileType = folder; path = BattleGuide; sourceTree = "<group>"; };
 		A17E637F087C4CABBB85DD51 /* FieldMaps */ = {isa = PBXFileReference; lastKnownFileType = folder; path = FieldMaps; sourceTree = "<group>"; };
 		A2D91291173B4907AB28E98C /* Animations */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Animations; sourceTree = "<group>"; };
@@ -134,6 +136,7 @@
 			isa = PBXGroup;
 			children = (
 				4B8057E2831420F2D019DBA1 /* Art */,
+				9E3A41DE570B486DA610D001 /* Sounds */,
 				03EA41210AD91BCDD1A97CFF /* HeadArt */,
 				A2D91291173B4907AB28E98C /* Animations */,
 				A17E637F087C4CABBB85DD50 /* BattleGuide */,
@@ -256,6 +259,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				F6A37395BC5C175939307F1F /* Art in Resources */,
+				9E3A41DE570B486DA610D002 /* Sounds in Resources */,
 				B0070ACA410F0C060D2F5FA0 /* HeadArt in Resources */,
 				8F0D23AA72BB41AE9397EC42 /* Animations in Resources */,
 				53AC7037A8FD42A187CD49F0 /* BattleGuide in Resources */,
@@ -378,7 +382,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_OBJC_WEAK = YES;
-				CURRENT_PROJECT_VERSION = 6;
+				CURRENT_PROJECT_VERSION = 8;
 				DEVELOPMENT_TEAM = 2DXQJA562U;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = "洛克精灵图鉴";
@@ -387,7 +391,7 @@
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				IPHONEOS_DEPLOYMENT_TARGET = 27.0;
-				MARKETING_VERSION = 1.5;
+				MARKETING_VERSION = 1.6.1;
 				PRODUCT_BUNDLE_IDENTIFIER = com.feiyang.rocofieldguide;
 				PRODUCT_NAME = RocoDex;
 				SWIFT_EMIT_LOC_STRINGS = YES;
@@ -447,7 +451,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
 				CLANG_ENABLE_OBJC_WEAK = YES;
-				CURRENT_PROJECT_VERSION = 6;
+				CURRENT_PROJECT_VERSION = 8;
 				DEVELOPMENT_TEAM = 2DXQJA562U;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = "洛克精灵图鉴";
@@ -456,7 +460,7 @@
 				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
 				IPHONEOS_DEPLOYMENT_TARGET = 27.0;
-				MARKETING_VERSION = 1.5;
+				MARKETING_VERSION = 1.6.1;
 				PRODUCT_BUNDLE_IDENTIFIER = com.feiyang.rocofieldguide;
 				PRODUCT_NAME = RocoDex;
 				SWIFT_EMIT_LOC_STRINGS = YES;

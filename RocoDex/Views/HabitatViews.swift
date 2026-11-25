@@ -192,7 +192,7 @@ struct HabitatMapPanel: View {
     var body: some View {
         if let entry = catalog.entry(for: spirit) {
             let content = MapContent(mapID: "mainland", entry: entry)
-            Button { expanded = true } label: {
+            Button(feedback: .key) { expanded = true } label: {
                 VStack(alignment: .leading, spacing: 3) {
                     HStack {
                         Label("分布地图", systemImage: "map")
@@ -249,7 +249,7 @@ private struct FieldMapSheet: View {
                 Text(spirit.formattedName + " · 分布地图")
                     .font(.headline).lineLimit(1).minimumScaleFactor(0.75)
                 Spacer()
-                Button { dismiss() } label: {
+                Button(feedback: .key) { dismiss() } label: {
                     Image(systemName: "xmark.circle.fill").font(.title2).frame(width: 40, height: 38)
                 }
                 .accessibilityLabel("关闭地图").accessibilityIdentifier("closeHabitatMap")
@@ -311,7 +311,7 @@ private struct FieldMapSheet: View {
                             }.buttonStyle(.plain)
                         }
                         ForEach(regionNames, id: \.self) { name in
-                            Button {
+                            Button(feedback: .key) {
                                 selected = name
                                 var extent = CGRect.null
                                 for area in content.areas where area.name == name {
@@ -340,17 +340,9 @@ private struct FieldMapSheet: View {
                 }
             }
             Text(legend).font(.caption).foregroundStyle(.secondary).lineLimit(3)
-            HStack {
-                Text("洛克王国世界 WIKI · " + (HabitatCatalog.shared.map(mapID)?.season ?? ""))
-                Spacer()
-                if let url = URL(string: "https://wiki.biligame.com/nrc/%E5%9C%B0%E5%9B%BE") {
-                    Link("地图来源", destination: url)
-                }
-            }
-            .font(.caption2).foregroundStyle(.secondary)
         }
         .padding(.horizontal, 14).padding(.vertical, 8)
-        .onChange(of: mapID) { _, _ in camera = nil; selected = nil }
+        .onChange(of: mapID) { _, _ in DeckSound.page.play(); camera = nil; selected = nil }
         .presentationDragIndicator(.visible)
         .presentationDetents([.large])
     }
@@ -365,7 +357,7 @@ private struct FieldMapSheet: View {
     }
 
     private func mapControl(_ symbol: String, _ label: String, action: @escaping () -> Void) -> some View {
-        Button(action: action) { Image(systemName: symbol).frame(width: 38, height: 36) }
+        Button(feedback: .key, action: action) { Image(systemName: symbol).frame(width: 38, height: 36) }
             .accessibilityLabel(label)
     }
 
@@ -379,6 +371,7 @@ private struct FieldMapSheet: View {
     }
 
     private func focus(_ location: FieldLocation) {
+        DeckSound.key.play()
         selected = location.id
         camera = FieldCamera(center: CGPoint(x: location.point.x, y: location.point.y), zoom: max(5, camera?.zoom ?? 1))
     }

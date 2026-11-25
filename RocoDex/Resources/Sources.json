@@ -6017,10 +6017,10 @@
   ],
   "narration": {
     "model": "Qwen3-TTS 1.7B CustomVoice",
-    "speaker": "Serena",
+    "speaker": "原创掌机图鉴声线",
     "reference": "https://github.com/QwenLM/Qwen3-TTS",
     "count": 665,
-    "notes": "普通话完整段落配音，依档案习性分别指定语气、重音和停顿，离线播放。口播和表演提示见工程根目录的配音台本.csv。"
+    "notes": "普通话短句播报，按精灵形态离线制作。报名、系别和习性之间留短停顿，后期调整掌机扬声器音色。口播与表演提示见配音台本.csv。"
   },
   "fieldGuide": {
     "skills": "https://wiki.biligame.com/nrc/技能列表",
@@ -6029,5 +6029,10 @@
     "habitatData": "FieldMaps/Habitats.json",
     "mapSeason": "S4 · 月涌狂想",
     "mapNote": "精灵栖息地标记代表区域；首领、传说挑战点和地名多边形按形态分别匹配。"
+  },
+  "animations": {
+    "source": "用户提供的洛克王国世界 WIKI 导出动作",
+    "catalog": "动图补充清单.csv",
+    "notes": "按内部形态 ID 区分出场、待机和旧版单循环。部分素材在出场结束处加入短过渡或调整待机首帧。"
   }
 }

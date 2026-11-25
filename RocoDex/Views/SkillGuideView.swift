@@ -133,7 +133,10 @@ private struct SkillGridPanel: View {
             .foregroundStyle(.white)
         }
         .fullScreenCover(item: $selection) { move in
-            SkillDetail(move: move) { selection = nil }
+            SkillDetail(move: move) {
+                DeckSound.key.play()
+                selection = nil
+            }
                 .presentationBackground(.clear)
         }
     }
@@ -150,7 +153,7 @@ private struct SkillGridPanel: View {
                     .onSubmit { editing = false }
                     .accessibilityLabel("搜索技能或效果").accessibilityIdentifier("skillSearch")
                 if !query.isEmpty {
-                    Button {
+                    Button(feedback: .key) {
                         query = ""
                     } label: { Image(systemName: "xmark.circle.fill") }
                     .accessibilityLabel("清空搜索")
@@ -161,7 +164,7 @@ private struct SkillGridPanel: View {
             .background(SkillPalette.card, in: Capsule())
             .overlay { Capsule().strokeBorder(SkillPalette.line) }
 
-            Button {
+            Button(feedback: .key) {
                 editing = false
                 changeSize()
             } label: {
@@ -196,7 +199,7 @@ private struct SkillGridPanel: View {
 
     private func sourceButton(_ option: SkillSource?, title: String, count: Int, compact: Bool, large: Bool) -> some View {
         let selected = source == option
-        return Button {
+        return Button(feedback: .key) {
             editing = false
             source = option
         } label: {
@@ -229,7 +232,7 @@ private struct SkillGridPanel: View {
             .font(.system(size: large ? 14 : 10, weight: .semibold))
             LazyVGrid(columns: [GridItem(.adaptive(minimum: minimum), spacing: 4)], spacing: 4) {
                 ForEach(entries) { move in
-                    Button {
+                    Button(feedback: .key) {
                         editing = false
                         selection = move
                     } label: {

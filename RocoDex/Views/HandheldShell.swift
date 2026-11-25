@@ -10,6 +10,8 @@ struct HandheldShell<Left: View, Right: View, KeypadScreen: View>: View {
     @Binding var keypadOpen: Bool
     let scanActive: Bool
     let scanning: Bool
+    let isSpeaking: Bool
+    let lamp: NarrationLampSignal
     @ViewBuilder let leftScreen: Left
     @ViewBuilder let rightScreen: Right
     @ViewBuilder let keypadScreen: KeypadScreen
@@ -68,6 +70,7 @@ struct HandheldShell<Left: View, Right: View, KeypadScreen: View>: View {
     }
 
     private func openKeypad() {
+        DeckSound.key.play()
         compactDetail = false
         keypadOpen = true
         feedbackTick &+= 1
@@ -99,7 +102,7 @@ struct HandheldShell<Left: View, Right: View, KeypadScreen: View>: View {
                     VStack(spacing: 0) {
                         HStack(spacing: 0) {
                             ForEach(ArchivePage.allCases, id: \.self) { tab in
-                                Button { page = tab } label: {
+                                Button(feedback: .page) { page = tab } label: {
                                     VStack(spacing: 3) {
                                         Label(tab.rightTitle, systemImage: tab.symbol)
                                             .font(.system(size: 14, weight: .bold, design: .rounded))
@@ -184,7 +187,7 @@ struct HandheldShell<Left: View, Right: View, KeypadScreen: View>: View {
         let unit = min(size.width * 0.14, height * 0.64)
         return HStack(alignment: .center, spacing: min(15, size.width * 0.035)) {
             if !isRight {
-                DeckLens(scanning: scanning)
+                DeckLens(scanning: scanning, isSpeaking: isSpeaking, lamp: lamp)
                     .frame(width: unit, height: unit)
                 HStack(spacing: max(4, unit * 0.10)) {
                     ForEach([Color(red: 0.84, green: 0.07, blue: 0.12), .yellow, .green], id: \.self) { color in
@@ -210,7 +213,7 @@ struct HandheldShell<Left: View, Right: View, KeypadScreen: View>: View {
             if compact && isRight {
                 headerButton("看档案", symbol: "book.closed", action: leaveRightPanel)
             } else if compact && !isRight && !scanActive {
-                headerButton("看资料", symbol: "book.pages") { compactDetail = true }
+                headerButton("看资料", symbol: "book.pages") { DeckSound.page.play(); compactDetail = true }
             }
             if (!isRight && compact && !scanActive) || (isRight && !keypadOpen && !scanActive) {
                 headerButton("查编号", symbol: "number", action: openKeypad)

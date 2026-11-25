@@ -10,7 +10,6 @@ struct Spirit: Codable, Identifiable {
     let evolutionPaths: [[Int]]?
 
     let dexNumber: Int?
-    let sourceURL: String?
     let form: String?
 
     var elements: [String] { type.components(separatedBy: "／") }
@@ -53,6 +52,11 @@ final class CatalogPictures {
     }
 }
 
+struct SpiritAnimation: Equatable {
+    let entry: URL?
+    let idle: URL?
+}
+
 struct Catalog {
     let countsByElement: [String: Int]
     let entries: [Spirit]
@@ -63,7 +67,7 @@ struct Catalog {
     func forms(for spirit: Spirit) -> [Spirit] { forms(number: spirit.dexNumber ?? spirit.id) }
 
     let references: ScanLibrary
-    let animationURLs: [Int: URL]
+    let animations: [Int: SpiritAnimation]
 
     init(bundle: Bundle = .main) throws {
         guard let directory = bundle.resourceURL else { throw CocoaError(.fileNoSuchFile) }
@@ -80,7 +84,11 @@ struct Catalog {
             Set((try? FileManager.default.contentsOfDirectory(atPath: directory.appendingPathComponent(folder).path)) ?? [])
         }
         let artworks = files("Art"), heads = files("HeadArt"), animations = files("Animations")
-        var urls: [Int: URL] = [:], motion: [Int: URL] = [:], samples: [ScanAsset] = []
+        var urls: [Int: URL] = [:], motion: [Int: SpiritAnimation] = [:], samples: [ScanAsset] = []
+        func animationURL(_ filename: String) -> URL? {
+            guard animations.contains(filename) else { return nil }
+            return directory.appendingPathComponent("Animations").appendingPathComponent(filename)
+        }
         for spirit in entries {
             if !spirit.image.isEmpty {
                 guard artworks.contains(spirit.image) else { throw CocoaError(.fileNoSuchFile) }
@@ -91,8 +99,10 @@ struct Catalog {
             let key = String(format: "%03d", spirit.id)
             let head = "head-" + key + ".png"
             if heads.contains(head) { samples.append(ScanAsset(id: spirit.id, path: "HeadArt/" + head)) }
-            if animations.contains(key + ".apng") {
-                motion[spirit.id] = directory.appendingPathComponent("Animations/" + key + ".apng")
+            let entry = animationURL(key + "-entry.apng")
+            let idle = animationURL(key + "-idle.apng") ?? animationURL(key + ".apng")
+            if entry != nil || idle != nil {
+                motion[spirit.id] = SpiritAnimation(entry: entry, idle: idle)
             }
         }
         self.countsByElement = entries.flatMap(\.elements).reduce(into: [:]) { $0[$1, default: 0] += 1 }
@@ -100,7 +110,7 @@ struct Catalog {
         formsByNumber = Dictionary(grouping: entries) { $0.dexNumber ?? $0.id }
         pictures = CatalogPictures(urls: urls)
         references = ScanLibrary(directory: directory, assets: samples)
-        animationURLs = motion
+        self.animations = motion
     }
 }
 

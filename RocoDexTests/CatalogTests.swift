@@ -60,10 +60,64 @@ final class CatalogTests: XCTestCase {
         XCTAssertTrue(Set([10556, 10573, 10574, 10575, 10576, 10577, 10578, 10579]).isSubset(of: Set(ids)))
     }
 
+    @MainActor
+    func testEntryHandsOffToIdleAndSingleActionCardsHaveAFallback() async throws {
+        let catalog = try Catalog()
+        func open(_ id: Int, _ playback: PortraitPlayback) throws -> SpriteAnimationView {
+            let view = SpriteAnimationView()
+            view.open(try XCTUnwrap(catalog.animations[id]), playback: playback,
+                      placeholder: try XCTUnwrap(catalog.pictures[id]))
+            return view
+        }
+        func waitUntil(_ predicate: () -> Bool) async throws -> Bool {
+            let clock = ContinuousClock()
+            let deadline = clock.now + .seconds(6)
+            while clock.now < deadline {
+                if predicate() { return true }
+                try await Task.sleep(for: .milliseconds(20))
+            }
+            return predicate()
+        }
+
+        let card = PortraitPlayback()
+        let sequence = try open(219, card)
+        defer { sequence.close() }
+        let entered = try await waitUntil { sequence.accessibilityValue?.hasPrefix("出场") == true }
+        XCTAssertTrue(entered)
+        sequence.setActive(true)
+        let idling = try await waitUntil { sequence.accessibilityValue?.hasPrefix("待机") == true }
+        XCTAssertTrue(idling)
+        let frame = sequence.accessibilityValue
+        let advanced = try await waitUntil { sequence.accessibilityValue != frame }
+        XCTAssertTrue(advanced)
+        sequence.close()
+
+        let reopenedPanel = try open(219, card)
+        defer { reopenedPanel.close() }
+        let resumesIdle = try await waitUntil { reopenedPanel.accessibilityValue?.hasPrefix("待机") == true }
+        XCTAssertTrue(resumesIdle)
+
+        XCTAssertNil(catalog.animations[220]?.idle)
+        let soloCard = PortraitPlayback()
+        let entryOnly = try open(220, soloCard)
+        defer { entryOnly.close() }
+        entryOnly.setActive(true)
+        let finished = try await waitUntil { soloCard.animationPreference == false }
+        XCTAssertTrue(finished, "An entry without an idle clip must return to the still portrait")
+        XCTAssertFalse(soloCard.failed)
+
+        XCTAssertNil(catalog.animations[239]?.entry)
+        let idleOnly = try open(239, PortraitPlayback())
+        defer { idleOnly.close() }
+        let startsIdle = try await waitUntil { idleOnly.accessibilityValue?.hasPrefix("待机") == true }
+        XCTAssertTrue(startsIdle)
+        XCTAssertNil(catalog.animations[5])
+    }
+
     func testWaterAnimationRetainsEveryFrameAndItsTiming() throws {
         let catalog = try Catalog()
-        XCTAssertEqual(Set(catalog.animationURLs.keys), [8])
-        let url = try XCTUnwrap(catalog.animationURLs[8])
+        XCTAssertNil(catalog.animations[8]?.entry)
+        let url = try XCTUnwrap(catalog.animations[8]?.idle)
         let source = try XCTUnwrap(CGImageSourceCreateWithURL(url as CFURL, nil))
         XCTAssertEqual(CGImageSourceGetCount(source), 240)
         let properties = try XCTUnwrap(CGImageSourceCopyProperties(source, nil) as? [CFString: Any])

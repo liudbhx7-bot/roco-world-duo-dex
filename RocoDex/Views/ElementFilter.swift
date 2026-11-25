@@ -9,7 +9,7 @@ struct ElementFilter: View {
         LazyVGrid(columns: [GridItem(.adaptive(minimum: 64, maximum: 92))], spacing: 6) {
             ForEach(elements, id: \.self) { element in
                 let count = catalog.countsByElement[element, default: 0]
-                Button {
+                Button(feedback: .key) {
                     selection = selection == element ? nil : element
                 } label: {
                     HStack(spacing: 4) {
