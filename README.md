@@ -2,11 +2,13 @@
 
 # 洛克精灵图鉴
 
+**简体中文** · [English](README.en.md) · [日本語](README.ja.md) · [한국어](README.ko.md)
+
 《洛克王国：世界》的非官方离线图鉴，专为 iPhone Duo 的双屏设计。
 
-**1.6.1 · 构建 8**　｜　**iOS 27.0+**　｜　**496 个编号 · 665 份形态档案**
+**1.6.2 · 构建 9**　｜　**iOS 27.0+**　｜　**496 个编号 · 665 份形态档案**
 
-[**下载待签名 IPA**](https://github.com/liudbhx7-bot/roco-world-duo-dex/releases/download/v1.6.1/RocoDex-1.6.1-unsigned.ipa) · [**安装指南**](docs/BUILDING.md) · [**1.6.1 发布页**](https://github.com/liudbhx7-bot/roco-world-duo-dex/releases/tag/v1.6.1)
+[**下载 1.6.2**](https://github.com/liudbhx7-bot/roco-world-duo-dex/releases/tag/v1.6.2) · [**安装指南**](docs/BUILDING.md) · [**版本记录**](CHANGELOG.md)
 
 </div>
 
@@ -16,15 +18,19 @@
 | :---: | :---: |
 | <a href="docs/images/waterblue-duo-1.6.1.jpg"><img src="docs/images/waterblue-duo-1.6.1.jpg" width="590" alt="Duo 展开，左屏显示水蓝蓝与蓝色指示灯，右屏展示浸润特性及六项种族资质"></a> | <a href="docs/images/duo-folded-archive.jpg"><img src="docs/images/duo-folded-archive.jpg" width="282" alt="Duo 外屏的圣火迪莫档案与方向键"></a> |
 
-**试试 1.6.1 的新动作。** 输入 **219** 打开里拉鳐，它会在立绘框内完成出场，随后循环待机。点「播放介绍」，听到开场机械音后，左上角的蓝灯会跟着播报的轻重明暗变化。介绍结束时有一声卡嗒，按方向键翻页也能听到回弹声。
+**试试 1.6.2 的新动作。** 输入 **421** 打开离心舞者，看它从出场动作接入循环待机。想对照动静图的大小，输入 **233**，选择首领形态「高帽鹬者」，再点立绘框右下角的切换键。点「播放介绍」还可以听到机械提示音，左上角的蓝灯会随播报明暗变化。
+
+![1.6.2 合拢屏上的高帽鹬者，左侧为静态立绘，右侧为收翅待机](docs/images/crowned-bird-1.6.2.jpg)
+
+应用界面使用简体中文，介绍使用普通话播报。页面顶部可切换四种语言的项目说明。
 
 ## 下载与安装
 
 | 用途 | 获取方式 |
 | --- | --- |
-| 安装到自己的 iPhone | [下载 1.6.1 待签名 IPA](https://github.com/liudbhx7-bot/roco-world-duo-dex/releases/download/v1.6.1/RocoDex-1.6.1-unsigned.ipa)，使用自己的 Apple 开发签名。首次安装也可直接用 Xcode 运行到真机。[安装与覆盖升级](docs/BUILDING.md) |
-| 在 Mac 上构建或体验模拟器 | [下载 1.6.1 源码 ZIP](https://github.com/liudbhx7-bot/roco-world-duo-dex/archive/refs/tags/v1.6.1.zip)，解压后打开 `RocoDex.xcodeproj`。本版使用 Xcode 27.2 构建。 |
-| 核对下载、查看历史版本 | [SHA-256 校验文件](https://github.com/liudbhx7-bot/roco-world-duo-dex/releases/download/v1.6.1/SHA256SUMS.txt) · [版本记录](CHANGELOG.md) · [历次发布](https://github.com/liudbhx7-bot/roco-world-duo-dex/releases) |
+| 安装到自己的 iPhone | 下载待签名 IPA 的[第一部分](https://github.com/liudbhx7-bot/roco-world-duo-dex/releases/download/v1.6.2/RocoDex-1.6.2-unsigned.ipa.part1)和[第二部分](https://github.com/liudbhx7-bot/roco-world-duo-dex/releases/download/v1.6.2/RocoDex-1.6.2-unsigned.ipa.part2)，按安装指南合并并校验后，使用自己的 Apple 开发签名安装。[合并、签名与覆盖升级](docs/BUILDING.md#合并待签名安装包) |
+| 在 Mac 上构建或体验模拟器 | [下载 1.6.2 源码 ZIP](https://github.com/liudbhx7-bot/roco-world-duo-dex/archive/refs/tags/v1.6.2.zip)，解压后打开 `RocoDex.xcodeproj`。本版使用 Xcode 27.2 构建。 |
+| 核对下载、查看历史版本 | [SHA-256 校验文件](https://github.com/liudbhx7-bot/roco-world-duo-dex/releases/download/v1.6.2/SHA256SUMS.txt) · [版本记录](CHANGELOG.md) · [历次发布](https://github.com/liudbhx7-bot/roco-world-duo-dex/releases) |
 
 ## 三步看懂一只精灵
 
@@ -36,7 +42,7 @@
 | :---: | :---: |
 | <a href="docs/images/evolution-and-skills.jpg"><img src="docs/images/evolution-and-skills.jpg" width="435" alt="左屏的进化分支与右屏按学习来源分组的技能图标"></a> | <a href="docs/images/habitat-map.jpg"><img src="docs/images/habitat-map.jpg" width="435" alt="卡瓦重的获取方式，以及游戏地图上标注的分布区域与点位"></a> |
 
-水蓝蓝展开图取自 1.6.1，其余示例截图取自 1.5。点击图片可放大。[查看「肥皂泡」技能详情截图](docs/images/skill-detail.jpg)
+高帽鹬者对照图取自 1.6.2，水蓝蓝展开图取自 1.6.1，其余界面示例取自 1.5。点击图片可放大。[查看「肥皂泡」技能详情截图](docs/images/skill-detail.jpg)
 
 ## 图鉴收录了什么
 
@@ -44,8 +50,8 @@
 - **相机与相册识别。** 支持后置相机拍摄、从相册选图和手动框选。相似精灵会列为候选，方便对照确认。匹配使用设备上的立绘和头像索引。
 - **进化与战斗资料。** 点进化分支可跳转到对应形态。技能卡可按名字、效果及学习来源查找，详情包含威力、能耗与学习条件。
 - **生态与获取。** 663 个形态有可核实的获取或进化途径。301 个形态有地图标记，另有 13 个可显示区域边界。栖息地标注代表一片区域，首领与挑战点另行标注。精灵资料采用 S5 记录，底图采用来源站的 S4「月涌狂想」地图。
-- **立绘与动作。** 39 个形态有动态立绘，其中 33 个备有完整的出场和待机动作。点立绘框内的按钮可切回静图。开启系统「减弱动态效果」后，档案默认显示静图。[观看里拉鳐出场](RocoDex/Resources/Animations/219-entry.apng) · [观看水蓝蓝待机](RocoDex/Resources/Animations/008.apng)
-- **离线播报。** 665 个形态各有独立的普通话介绍。扫描识别成功后，确认音响完就会报出名字、系别，再介绍精灵的特征。可在名册里分别开关操作音效和自动朗读。[试听水蓝蓝的介绍](https://raw.githubusercontent.com/liudbhx7-bot/roco-world-duo-dex/v1.6.1/RocoDex/Resources/Narration/008.m4a)
+- **立绘与动作。** 本版新增 349 段动作，213 个形态有动态立绘，其中 208 个备有完整的出场和待机动作。每个形态按自己的静态立绘调整动画取景。点立绘框内的按钮可切回静图。开启系统「减弱动态效果」后，档案默认显示静图。[观看里拉鳐出场](RocoDex/Resources/Animations/219-entry.apng) · [观看水蓝蓝待机](RocoDex/Resources/Animations/008.apng)
+- **离线播报。** 665 个形态各有独立的普通话介绍。扫描识别成功后，确认音响完就会报出名字、系别，再介绍精灵的特征。可在名册里分别开关操作音效和自动朗读。[试听水蓝蓝的介绍](https://raw.githubusercontent.com/liudbhx7-bot/roco-world-duo-dex/v1.6.2/RocoDex/Resources/Narration/008.m4a)
 
 ## 开发、改编与反馈
 

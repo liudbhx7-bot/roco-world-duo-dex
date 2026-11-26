@@ -2,17 +2,17 @@
 
 想在 Mac 上体验图鉴，可以从模拟器开始。想在自己的 iPhone 上扫描游戏画面，使用 Xcode 选好开发团队后直接运行到手机。
 
-| 项目 | 1.6.1 的设置 |
+| 项目 | 1.6.2 的设置 |
 | --- | --- |
 | 运行设备 | iPhone，最低部署版本为 iOS 27.0。iPhone Duo 在 iOS 27.1 及以上还会读取系统的铰链状态。 |
 | 已验证的构建环境 | Xcode 27.2，iOS 27.2 SDK。编译需要包含 `UIHingeInteraction` 的 SDK。 |
 | 工程与方案 | `RocoDex.xcodeproj`，共享方案 `RocoDex` |
-| 版本 | 1.6.1，构建号 8 |
+| 版本 | 1.6.2，构建号 9 |
 | 发行版 Bundle ID | `com.feiyang.rocofieldguide` |
 
 ## 在模拟器打开
 
-1. 下载 [v1.6.1 源码](https://github.com/liudbhx7-bot/roco-world-duo-dex/archive/refs/tags/v1.6.1.zip) 并解压，双击 `RocoDex.xcodeproj`。
+1. 下载 [v1.6.2 源码](https://github.com/liudbhx7-bot/roco-world-duo-dex/archive/refs/tags/v1.6.2.zip) 并解压，双击 `RocoDex.xcodeproj`。
 2. 在 Xcode 顶部选中 **RocoDex** 方案，再选 **iPhone Duo** 模拟器。如果设备列表缺少该机型，在 Xcode 的 Settings → Components 安装对应的 iOS 模拟器运行时，再创建或选择该机型。
 3. 按 **⌘R** 运行。点「查编号」，输入 `008` 查看水蓝蓝。测试相册识别时，可先将工程内的 `RocoDex/Resources/Art/008.png` 拖进模拟器，再在图鉴中点「扫描」→「从相册识别」。
 
@@ -26,7 +26,16 @@
 
 **更新已有安装**时，沿用原安装的 Bundle ID 和可覆盖它的签名身份，保留手机上的旧版并执行覆盖安装。发现记录保存在原应用的数据容器里。更换 Bundle ID 会装成独立应用，从新的记录开始。
 
-[1.6.1 发布页](https://github.com/liudbhx7-bot/roco-world-duo-dex/releases/tag/v1.6.1) 也提供 `RocoDex-1.6.1-unsigned.ipa`。这个附件需要先配置适用于自己的 Apple 签名和设备的描述文件，再安装到手机。模拟器请使用上面的源码构建流程。
+## 合并待签名安装包
+
+在 Mac 上把[第一部分](https://github.com/liudbhx7-bot/roco-world-duo-dex/releases/download/v1.6.2/RocoDex-1.6.2-unsigned.ipa.part1)、[第二部分](https://github.com/liudbhx7-bot/roco-world-duo-dex/releases/download/v1.6.2/RocoDex-1.6.2-unsigned.ipa.part2)和[校验文件](https://github.com/liudbhx7-bot/roco-world-duo-dex/releases/download/v1.6.2/SHA256SUMS.txt)下载到同一文件夹。进入该文件夹，依次运行下面两行命令。
+
+```sh
+cat RocoDex-1.6.2-unsigned.ipa.part1 RocoDex-1.6.2-unsigned.ipa.part2 > RocoDex-1.6.2-unsigned.ipa
+shasum -a 256 -c SHA256SUMS.txt
+```
+
+看到两份分卷和完整 IPA 都显示 `OK` 后，用自己的 Apple 开发签名和设备描述文件签名完整的 `.ipa`，再安装到手机。也可以在 Xcode 中按上面的步骤直接运行源码。[1.6.2 发布页](https://github.com/liudbhx7-bot/roco-world-duo-dex/releases/tag/v1.6.2)
 
 ## 运行测试
 

@@ -114,6 +114,42 @@ final class CatalogTests: XCTestCase {
         XCTAssertNil(catalog.animations[5])
     }
 
+    func testAnimationFramingKeepsTheEntryLandingAndIdleAtTheSameSize() throws {
+        let json = """
+        {
+          "valid": {"x":0.25,"y":0.25,"width":0.5,"height":0.5,"entryKeys":[
+            {"frame":0,"x":0,"y":0,"width":1,"height":1},
+            {"frame":10,"x":0.25,"y":0.25,"width":0.5,"height":0.5}],"idleKeys":[
+            {"frame":0,"x":0.25,"y":0.25,"width":0.5,"height":0.5},
+            {"frame":4,"x":0,"y":0,"width":1,"height":1},
+            {"frame":8,"x":0.25,"y":0.25,"width":0.5,"height":0.5}]},
+          "badLoop": {"x":0.25,"y":0.25,"width":0.5,"height":0.5,"idleKeys":[
+            {"frame":0,"x":0,"y":0,"width":1,"height":1}]},
+          "invalid": {"x":0,"y":0,"width":0,"height":0.5}
+        }
+        """
+        let rows = try JSONDecoder().decode([String: AnimationFraming].self, from: Data(json.utf8))
+        let setting = try XCTUnwrap(rows["valid"])
+        XCTAssertEqual(rows["invalid"], .fullCanvas)
+        XCTAssertEqual(rows["badLoop"], .fullCanvas)
+        XCTAssertEqual(setting.validated(entryFrameCount: 10, idleFrameCount: 9), .fullCanvas)
+        XCTAssertEqual(setting.validated(entryFrameCount: 11, idleFrameCount: 8), .fullCanvas)
+        let framing = setting.validated(entryFrameCount: 11, idleFrameCount: 9)
+        let settled = framing.viewport(for: 0, isEntry: false)
+        let middle = CGRect(x: 0.125, y: 0.125, width: 0.75, height: 0.75)
+        XCTAssertEqual(framing.viewport(for: 5, isEntry: true), middle)
+        XCTAssertEqual(framing.viewport(for: 2, isEntry: false), middle)
+        XCTAssertEqual(framing.viewport(for: 10, isEntry: true), settled)
+        XCTAssertEqual(framing.viewport(for: 8, isEntry: false), settled)
+        let canvas = CGSize(width: 512, height: 416)
+        let slot = CGRect(x: 0, y: 0, width: 512, height: 300)
+        let result = AnimationFraming.imageFrame(canvas: canvas, viewport: settled, in: slot)
+        XCTAssertEqual(result.height, 600, accuracy: 0.001)
+        XCTAssertEqual(result.width / result.height, canvas.width / canvas.height, accuracy: 0.001)
+        XCTAssertEqual(result.midX, slot.midX, accuracy: 0.001)
+        XCTAssertEqual(result.midY, slot.midY, accuracy: 0.001)
+    }
+
     func testWaterAnimationRetainsEveryFrameAndItsTiming() throws {
         let catalog = try Catalog()
         XCTAssertNil(catalog.animations[8]?.entry)

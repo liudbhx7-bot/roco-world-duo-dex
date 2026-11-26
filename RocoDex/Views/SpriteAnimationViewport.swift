@@ -62,6 +62,10 @@ final class SpriteAnimationView: UIView {
     }
 
     private let decodeQueue = DispatchQueue(label: "roco.animation.frame", qos: .userInitiated)
+    private let artworkLayer = CALayer()
+    private var framing = AnimationFraming.fullCanvas
+    private var canvasSize = CGSize.zero
+    private var viewport = AnimationFraming.fullCanvas.viewport(for: 0, isEntry: false)
     private var clip: Animation?
     private var idle: Animation?
     private var isEntry = false
@@ -78,8 +82,9 @@ final class SpriteAnimationView: UIView {
     func open(_ motion: SpiritAnimation, playback: PortraitPlayback, placeholder: UIImage) {
         self.playback = playback
         isOpaque = false
-        layer.contentsGravity = .resizeAspect
-        layer.contents = placeholder.cgImage
+        clipsToBounds = true
+        layer.addSublayer(artworkLayer)
+        if let bitmap = placeholder.cgImage { present(bitmap, index: 0) }
         let entryURL = playback.didStartEntry ? nil : motion.entry
         let job = DispatchWorkItem { [weak self] in
             let entry = entryURL.flatMap { url in autoreleasepool { Animation(url: url) } }
@@ -95,6 +100,7 @@ final class SpriteAnimationView: UIView {
                 self.idle = idle
                 self.clip = first
                 self.isEntry = entry != nil
+                self.framing = motion.framing.validated(entryFrameCount: entry?.endTimes.count, idleFrameCount: idle?.endTimes.count)
                 if self.isEntry { playback.didStartEntry = true }
                 self.present(first.first, index: 0)
                 self.accessibilityIdentifier = "animationViewport"
@@ -157,11 +163,22 @@ final class SpriteAnimationView: UIView {
     }
 
     private func present(_ bitmap: CGImage, index: Int) {
+        canvasSize = CGSize(width: bitmap.width, height: bitmap.height)
+        viewport = framing.viewport(for: index, isEntry: isEntry)
         CATransaction.begin()
         CATransaction.setDisableActions(true)
-        layer.contents = bitmap
+        artworkLayer.frame = AnimationFraming.imageFrame(canvas: canvasSize, viewport: viewport, in: bounds)
+        artworkLayer.contents = bitmap
         CATransaction.commit()
         currentFrame = index
+    }
+
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        CATransaction.begin()
+        CATransaction.setDisableActions(true)
+        artworkLayer.frame = AnimationFraming.imageFrame(canvas: canvasSize, viewport: viewport, in: bounds)
+        CATransaction.commit()
     }
 
     private func finishEntry() {

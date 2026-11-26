@@ -55,6 +55,7 @@ final class CatalogPictures {
 struct SpiritAnimation: Equatable {
     let entry: URL?
     let idle: URL?
+    let framing: AnimationFraming
 }
 
 struct Catalog {
@@ -84,6 +85,8 @@ struct Catalog {
             Set((try? FileManager.default.contentsOfDirectory(atPath: directory.appendingPathComponent(folder).path)) ?? [])
         }
         let artworks = files("Art"), heads = files("HeadArt"), animations = files("Animations")
+        let framingURL = directory.appendingPathComponent("Animations/framing.json")
+        let framing = (try? JSONDecoder().decode([String: AnimationFraming].self, from: Data(contentsOf: framingURL))) ?? [:]
         var urls: [Int: URL] = [:], motion: [Int: SpiritAnimation] = [:], samples: [ScanAsset] = []
         func animationURL(_ filename: String) -> URL? {
             guard animations.contains(filename) else { return nil }
@@ -102,7 +105,7 @@ struct Catalog {
             let entry = animationURL(key + "-entry.apng")
             let idle = animationURL(key + "-idle.apng") ?? animationURL(key + ".apng")
             if entry != nil || idle != nil {
-                motion[spirit.id] = SpiritAnimation(entry: entry, idle: idle)
+                motion[spirit.id] = SpiritAnimation(entry: entry, idle: idle, framing: framing[key] ?? .fullCanvas)
             }
         }
         self.countsByElement = entries.flatMap(\.elements).reduce(into: [:]) { $0[$1, default: 0] += 1 }

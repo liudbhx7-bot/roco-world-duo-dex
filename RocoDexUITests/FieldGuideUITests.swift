@@ -65,6 +65,72 @@ final class FieldGuideUITests: XCTestCase {
         XCTAssertTrue(app.buttons["portraitNarration"].isHittable)
     }
 
+    func testNutcrackerPrinceOpensWithItsNewAnimation() throws {
+        lookup("419")
+        XCTAssertTrue(app.staticTexts["胡桃王子"].firstMatch.exists)
+        XCTAssertEqual(app.buttons["portraitMediaToggle"].value as? String, "动图")
+        let image = app.descendants(matching: .any).matching(identifier: "animationViewport").firstMatch
+        XCTAssertTrue(image.waitForExistence(timeout: 5))
+        let resting = NSPredicate { _, _ in (image.value as? String)?.hasPrefix("待机") == true }
+        XCTAssertEqual(XCTWaiter.wait(for: [XCTNSPredicateExpectation(predicate: resting, object: nil)], timeout: 7), .completed)
+        capture("nutcracker-prince-idle")
+    }
+
+    func testCrownedBirdIdleMatchesStillPortraitHeight() throws {
+        lookup("233")
+        app.buttons["chooseForm"].tap()
+        app.buttons["entry-10587"].tap()
+        XCTAssertTrue(app.staticTexts["高帽鹬者"].waitForExistence(timeout: 5))
+        let animation = app.images["animationViewport"]
+        let idle = NSPredicate { _, _ in (animation.value as? String)?.hasPrefix("待机") == true }
+        XCTAssertEqual(XCTWaiter.wait(for: [XCTNSPredicateExpectation(predicate: idle, object: nil)], timeout: 8), .completed)
+
+        // Isolate this form's blue plumage and red feet from the green grid and teal toggle.
+        func birdHeight(in element: XCUIElement) throws -> CGFloat {
+            let shot = element.screenshot()
+            // On the Duo inner panel XCTest supplies a portrait bitmap with landscape
+            // UIImage orientation. Render it upright before measuring vertical rows.
+            let format = UIGraphicsImageRendererFormat()
+            format.scale = shot.image.scale
+            let upright = UIGraphicsImageRenderer(size: element.frame.size, format: format).image { _ in
+                shot.image.draw(in: CGRect(origin: .zero, size: element.frame.size))
+            }
+            let attachment = XCTAttachment(image: upright)
+            attachment.name = "bird-pixels-" + element.identifier
+            attachment.lifetime = .keepAlways
+            add(attachment)
+            let bitmap = try XCTUnwrap(upright.cgImage)
+            let width = bitmap.width, height = bitmap.height
+            let context = try XCTUnwrap(CGContext(data: nil, width: width, height: height,
+                bitsPerComponent: 8, bytesPerRow: width * 4, space: CGColorSpaceCreateDeviceRGB(),
+                bitmapInfo: CGImageAlphaInfo.noneSkipLast.rawValue | CGBitmapInfo.byteOrder32Big.rawValue))
+            context.draw(bitmap, in: CGRect(x: 0, y: 0, width: width, height: height))
+            let rgb = try XCTUnwrap(context.data).assumingMemoryBound(to: UInt8.self)
+            var first = height, last = -1
+            for y in 0..<height {
+                var colored = 0
+                for x in 0..<width {
+                    let offset = 4 * (y * width + x)
+                    let r = Int(rgb[offset]), g = Int(rgb[offset+1]), b = Int(rgb[offset+2])
+                    if (b > g + 9 && b > r + 9) || (r > g + 32 && r > b + 32) { colored += 1 }
+                }
+                if colored >= 3 { first = min(first, y); last = y }
+            }
+            XCTAssertGreaterThan(last, first)
+            return CGFloat(last - first + 1) * element.frame.height / CGFloat(height)
+        }
+
+        let movingHeight = try birdHeight(in: animation)
+        capture("crowned-bird-idle")
+        app.buttons["portraitMediaToggle"].tap()
+        let still = app.images["staticPortrait"]
+        XCTAssertTrue(still.waitForExistence(timeout: 5))
+        let stillHeight = try birdHeight(in: still)
+        capture("crowned-bird-still")
+        print("Crowned bird height in points: idle=\(movingHeight), still=\(stillHeight)")
+        XCTAssertEqual(movingHeight / stillHeight, 1, accuracy: 0.18)
+    }
+
     func testBlueLampRespondsDuringNarration() throws {
         lookup("008")
         let lens = app.descendants(matching: .any).matching(identifier: "narrationLamp").firstMatch
